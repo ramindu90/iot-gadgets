@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c)  2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied. See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<Module>
+    <ModulePrefs title="Polling Map" description="Polling Map Gadget">
+        <Require feature="pubsub-2"/>
+        <Require feature="dynamic-height"/>
+    </ModulePrefs>
+    <Content type="html">
+        <![CDATA[
+        <head>
+            <meta charset="utf-8">
+            <title>Twitter Typeahead Widget</title>
+
+            <link rel="stylesheet" href="/portal/css/bootstrap.min.css" type="text/css"/>
+            <link rel="stylesheet" href="css/leaflet.css" type="text/css"/>
+            <link rel="stylesheet" href="css/leaflet.markercluster.css" type="text/css"/>
+            <link rel="stylesheet" href="css/style.css" type="text/css"/>
+
+            <script src="/portal/js/jquery-1.10.2.js"></script>
+            <script src="/portal/js/bootstrap.min.js"></script>
+            <script src="js/leaflet.js"></script>
+            <script src="js/leaflet.markercluster.js"></script>
+            <script src="js/leaflet.featuregroup.subgroup.js"></script>
+            <script src="js/marker.rotate.js"></script>
+            <script src="js/config.js"></script>
+            <script src="js/marker.js"></script>
+        </head>
+        <body>
+            <div style="display: none">
+                <div id="markerPopup" class="popover top">
+                    <div class="arrow"></div>
+                    <h3 class="popover-title"><span id="objectName"></span></h3>
+
+                    <div class="popover-content">
+                        ID : <span id="objectId"></span>
+                        <hr />
+                        <h6>Information</h6>
+                        <p id="information" class="bg-primary" style="margin: 0px;padding: 0px;"></p>
+                        <h6>Speed<span class="label label-primary pull-right"><span id="speed"></span> km/h</span></h6>
+                        <h6>Heading<span id="heading" class="label label-primary pull-right"></span></h6>
+                        <button type="button" class="btn btn-info btn-xs" onClick="pm.focusOnMarker(document.getElementById('objectId').innerHTML);return false;">History</button>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div id="map"></div>
+                    </div>
+                </div>
+            </div>
+            <script src="js/polling.map.main.js"></script>
+        </body>
+        ]]>
+    </Content>
+</Module>

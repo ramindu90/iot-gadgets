@@ -1,0 +1,26 @@
+{
+  "id": "typeahead",
+  "title": "Typeahead",
+  "type": "gadget",
+  "thumbnail": "store://gadget/typeahead/img/thumbnail.png",
+  "settings": {
+    "personalize": true
+  },
+  "data": {
+    "url": "store://gadget/typeahead/index.xml"
+  },
+  "styles": {
+    "borders": false,
+    "title": false
+  },
+  "notify": {
+    "select": {
+      "type": "address",
+      "description": "This notifies selected state"
+    },
+    "cancel": {
+      "type": "boolean",
+      "description": "This notifies cancellation of state selection"
+    }
+  }
+}

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+    <ModulePrefs title="Typeahead" description="Twitter Typeahead widget">
+        <Require feature="pubsub-2"/>
+        <Require feature="dynamic-height"/>
+    </ModulePrefs>
+    <Content type="html">
+        <![CDATA[
+        <head>
+            <meta charset="utf-8">
+            <title>Twitter Typeahead Widget</title>
+            <link rel="stylesheet" href="/portal/css/bootstrap.min.css" type="text/css"/>
+            <style>
+                .typehead-inline {
+                    margin:0 auto;
+                }
+            </style>
+            <script src="/portal/js/jquery-1.10.2.js"></script>
+            <script src="/portal/js/bootstrap.min.js"></script>
+            <script src="js/typeahead.bundle.min.js"></script>
+            <script src="js/typeahead.main.js"></script>
+        </head>
+        <body>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div id="typeahead">
+                            <input class="typeahead" type="text" placeholder="Typehead Example">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </body>
+        ]]>
+    </Content>
+</Module>
