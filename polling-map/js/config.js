@@ -16,6 +16,7 @@
  * under the License.
  */
 var config = {
+    single_marker_mode: false,
     sources: [
         {
             id: "Category 1",
@@ -54,7 +55,7 @@ var config = {
     markercluster: {
         animateAddingMarkers: false,
         singleMarkerMode: false,
-        disableClusteringAtZoom: 17
+        disableClusteringAtZoom: 14
         // refer to https://github.com/Leaflet/Leaflet.markercluster/blob/leaflet-0.7/README.md#customising-the-clustered-markers
     },
     constants: {

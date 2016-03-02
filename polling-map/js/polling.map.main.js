@@ -23,7 +23,6 @@ pm.markers = pm.markers || {};
 pm.map = null;
 pm.polling_task = null;
 pm.selected_marker = null;
-pm.toggled = false;
 pm.freeze = false;
 
 pm.initialize = function () {
@@ -35,23 +34,29 @@ pm.initialize = function () {
 pm.initLayers = function () {
     // Add default layer.
     pm.layers["default"] = L.tileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 18,
+        maxZoom: config.map.maxZoom,
         attribution: '© <a href="http://www.openstreetmap.org/copyright" target="_blank">' +
         'OpenStreetMap</a>'
     });
 
-    // Add other layers from config.
-    for (var i = 0; i < config.sources.length; i++) {
-        var source = config.sources[i];
-        pm.cluster_groups[source.id] = new L.MarkerClusterGroup(config.markercluster);
-
-        pm.cluster_groups[source.id].on('clustermouseover', function (a) {
-            pm.freeze = true;
+    if (config.single_marker_mode) {
+        pm.layers["marker_layer"] = L.tileLayer("", {
+            maxZoom: config.map.maxZoom
         });
+    } else {
+        // Add other layers from config.
+        for (var i = 0; i < config.sources.length; i++) {
+            var source = config.sources[i];
+            pm.cluster_groups[source.id] = new L.MarkerClusterGroup(config.markercluster);
 
-        pm.cluster_groups[source.id].on('clustermouseout', function (a) {
-            pm.freeze = false;
-        });
+            pm.cluster_groups[source.id].on('clustermouseover', function (a) {
+                pm.freeze = true;
+            });
+
+            pm.cluster_groups[source.id].on('clustermouseout', function (a) {
+                pm.freeze = false;
+            });
+        }
     }
 };
 
@@ -68,25 +73,37 @@ pm.initMap = function () {
         maxZoom: config.map.maxZoom,
         maxNativeZoom: config.map.maxNativeZoom
     });
-    L.control.layers(null, pm.cluster_groups).addTo(pm.map);        // Add layer controller
     new L.Control.Zoom({position: 'bottomright'}).addTo(pm.map);    // Add zoom controller
-    for (var i in this.cluster_groups) {                            // Add sub marker groups
-        if (this.cluster_groups.hasOwnProperty(i)) {
-            this.cluster_groups[i].addTo(this.map);
+    if (!config.single_marker_mode) {
+        L.control.layers(null, pm.cluster_groups).addTo(pm.map);    // Add layer controller
+        for (var i in this.cluster_groups) {                        // Add sub marker groups
+            if (this.cluster_groups.hasOwnProperty(i)) {
+                this.cluster_groups[i].addTo(this.map);
+            }
         }
+
+        // Zoom callbacks.
+        pm.map.on('zoomend', function () {
+            if (pm.map.getZoom() < config.markercluster.disableClusteringAtZoom) {
+                if (pm.selected_marker) {
+                    pm.clearFocus();
+                }
+            }
+        });
+
+        // Marker popup open callback.
+        pm.map.on('popupopen', function (e) {
+            if (pm.selected_marker) {
+                pm.clearFocus();
+            }
+            pm.selected_marker = e.popup._source.feature.id;
+        });
     }
 
-    // Click callbacks.
+    // Map click callbacks.
     pm.map.on('click', function (e) {
-        pm.clearFocus();
-    });
-
-    // Zoom callbacks.
-    pm.map.on('zoomend', function () {
-        if (pm.map.getZoom() < 14) {
-            console.log("Zoom is less than 14");
-        } else {
-            console.log("Zoom is greater than 14");
+        if (pm.selected_marker) {
+            pm.clearFocus();
         }
     });
 };
@@ -101,17 +118,23 @@ pm.getLayers = function () {
     return layers;
 };
 
+// TODO : Uncomment
 pm.startPolling = function () {
     //this.polling_task = setInterval(function () {
-    //    if (!pm.freeze) {
-    //        for (var i = 0; i < config.sources.length; i++) {
-    //            pm.poll(config.sources[i]);
+    //    if (config.single_marker_mode) {
+    //        pm.poll(config.sources[0]);
+    //    } else {
+    //        if (!pm.freeze) {
+    //            for (var i = 0; i < config.sources.length; i++) {
+    //                pm.poll(config.sources[i]);
+    //            }
     //        }
     //    }
     //}, config.constants.POLLING_INTERVAL);
     pm.poll();
 };
 
+// TODO : Uncomment
 //pm.poll = function (source) {
 //    $.getJSON(source.url, function (data) {
 //        $.each(data, function (key, val) {
@@ -188,6 +211,7 @@ StubMarker.prototype.update = function () {
 
 // TODO : Replace this stub with real data.
 pm.markers = [
+    new StubMarker(8),
     new StubMarker(1),
     new StubMarker(2),
     new StubMarker(3),
@@ -195,17 +219,20 @@ pm.markers = [
     new StubMarker(5),
     new StubMarker(6),
     new StubMarker(7),
-    new StubMarker(8),
     new StubMarker(9)
 ];
 pm.poll = function () {
     setInterval(function () {
-        for (var i = 0; i < pm.markers.length; i++) {
-            if (!pm.freeze) {
-                pm.processPointMessage(pm.markers[i].update());
+        if (config.single_marker_mode) {
+            pm.processPointMessage(pm.markers[0].update());
+        } else {
+            for (var i = 0; i < pm.markers.length; i++) {
+                if (!pm.freeze) {
+                    pm.processPointMessage(pm.markers[i].update());
+                }
             }
         }
-    }, 2000);
+    }, 500);
 };
 
 pm.processPointMessage = function (geoJson) {
@@ -213,30 +240,27 @@ pm.processPointMessage = function (geoJson) {
         var existingObject = pm.markers[geoJson.id];
         existingObject.update(geoJson);
     } else {
-        var receivedObject = new GeoMarker(geoJson, pm.cluster_groups[geoJson.sourceId]);
+        var receivedObject = (config.single_marker_mode) ?
+            new GeoMarker(geoJson, pm.map) :
+            new GeoMarker(geoJson, pm.cluster_groups[geoJson.sourceId]);
         receivedObject.update(geoJson);
         pm.markers[geoJson.id] = receivedObject;
         pm.markers[geoJson.id].addToLayer();
     }
+    if (config.single_marker_mode) {
+        pm.selected_marker = geoJson.id;
+    }
 };
 
-pm.focusOnMarker = function (markerId) {
-    var spatialObject = pm.markers[markerId];
+pm.focusOnMarker = function () {
+    var spatialObject = pm.markers[pm.selected_marker];
     if (!spatialObject) {
-        console.log("marker with id : " + markerId + " not in map");
+        console.log("marker with id : " + pm.selected_marker + " not in map");
         return false;
     }
     pm.clearFocus();
-    pm.selected_marker = markerId;
-    console.log("Selected " + markerId + " type " + spatialObject.type);
-    pm.map.setView(spatialObject.marker.getLatLng(), 15, {animate: true}); // TODO: check the map._layersMaxZoom and set the zoom level accordingly
-
-    $('#objectInfo').find('#objectInfoId').html(pm.selected_marker);
+    pm.map.setView(spatialObject.marker.getLatLng(), pm.map.getZoom(), {animate: true});
     spatialObject.marker.openPopup();
-    if (!pm.toggled) {
-        $('#objectInfo').animate({width: 'toggle'}, 100);
-        pm.toggled = true;
-    }
     spatialObject.drawPath();
 };
 
@@ -244,7 +268,9 @@ pm.clearFocus = function () {
     if (this.selected_marker) {
         var spatialObject = pm.markers[pm.selected_marker];
         spatialObject.removeFromMap();
-        this.selected_marker = null;
+        if (!config.single_marker_mode) {
+            this.selected_marker = null;
+        }
     }
 };
 

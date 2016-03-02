@@ -58,32 +58,15 @@ GeoMarker.prototype.update = function (geoJSON) {
     this.name = geoJSON.properties.name;
     this.displayName = this.name;
 
-    if (geoJSON.properties.notify) {
-        var newLineStringGeoJson = this.createLineStringFeature(this.state, this.information, [this.latitude, this.longitude]);
-        this.pathGeoJsons.push(newLineStringGeoJson);
-
-        // only add the new path section to layerGroup if the spatial object is selected
-        if (pm.selected_marker == this.id) {
-            var newPathSection = new L.polyline(newLineStringGeoJson.geometry.coordinates, this.getSectionStyles(geoJSON.properties.state));
-            newPathSection.bindPopup("Alert Information: " + newLineStringGeoJson.properties.information);
-            var lastSection = this.path[this.path.length - 1].getLatLngs();
-            var joinLine = [lastSection[lastSection.length - 1], [this.latitude, this.longitude]];
-            var sectionJoin = new L.polyline(joinLine, this.getSectionStyles());
-            sectionJoin.setStyle({className: "sectionJointStyle"});// Make doted line for section join , this class is currently defined in map.jag as a inner css
-            this.path.push(sectionJoin);
-            this.path.push(newPathSection); // Order of the push matters , last polyLine object should be the `newPathSection` not the `sectionJoin`
-            this.layerGroup.addLayer(sectionJoin);
-            this.layerGroup.addLayer(newPathSection);
-        }
-    }
-
     // Update the spatial object leaflet marker
-    this.layerGroup.removeLayer(this.marker);
     this.marker.setLatLng([this.latitude, this.longitude]);
     this.marker.setIconAngle(this.heading);
     this.marker.setIcon(this.stateIcon());
-    this.layerGroup.addLayer(this.marker);
-    this.layerGroup.refreshClusters();
+    if (pm.selected_marker != this.id && !config.single_marker_mode) {
+        this.layerGroup.removeLayer(this.marker);
+        this.layerGroup.addLayer(this.marker);
+        this.layerGroup.refreshClusters();
+    }
 
     if (this.pathGeoJsons.length > 0) {
         this.pathGeoJsons[this.pathGeoJsons.length - 1].geometry.coordinates.push(
@@ -98,7 +81,7 @@ GeoMarker.prototype.update = function (geoJSON) {
 
     if (pm.selected_marker == this.id) {
         this.updatePath([geoJSON.geometry.coordinates[1], geoJSON.geometry.coordinates[0]]);
-        pm.map.setView([this.latitude, this.longitude]);
+        pm.map.setView([this.latitude, this.longitude], pm.map.getZoom(), {animate: true});
     }
 
     this.popupTemplate.find('#objectId').html(this.id);
@@ -137,12 +120,13 @@ GeoMarker.prototype.setSpeed = function (speed) {
 };
 
 GeoMarker.prototype.addToLayer = function () {
-    // this.marker.addTo(layerGroup);
     this.layerGroup.addLayer(this.geoJson);
 };
 
 GeoMarker.prototype.updatePath = function (LatLng) {
-    this.path[this.path.length - 1].addLatLng(LatLng); // add LatLng to last section
+    if (this.path.length > 0) {
+        this.path[this.path.length - 1].addLatLng(LatLng); // add LatLng to last section
+    }
 };
 
 GeoMarker.prototype.drawPath = function () {
