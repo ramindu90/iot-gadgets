@@ -16,7 +16,7 @@
  * under the License.
  */
 var config = {
-    single_marker_mode: false,
+    single_marker_mode: true,
     sources: [
         {
             id: "Category 1",

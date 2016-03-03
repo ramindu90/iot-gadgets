@@ -26,9 +26,53 @@ pm.selected_marker = null;
 pm.freeze = false;
 
 pm.initialize = function () {
+    // TODO : remove these data
+    // --- stub data ---
+    pm.markers = [
+        new StubMarker(8),
+        new StubMarker(1),
+        new StubMarker(2),
+        new StubMarker(3),
+        new StubMarker(4),
+        new StubMarker(5),
+        new StubMarker(6),
+        new StubMarker(7),
+        new StubMarker(9)
+    ];
+    // --- end data ---
+
     this.initLayers();
     this.initMap();
     this.startPolling();
+    setTimeout(function() {
+        pm.reinitialize();
+    }, 10000);
+};
+
+pm.reinitialize = function () {
+    config.single_marker_mode = false; // TODO : only for testing
+    for (var i in this.cluster_groups) {
+        if (this.cluster_groups.hasOwnProperty(i)) {
+            pm.map.removeLayer(this.cluster_groups[i]);
+            delete this.cluster_groups[i];
+        }
+    }
+    for (var j in this.layers) {
+        if (this.layers.hasOwnProperty(j)) {
+            pm.map.removeLayer(this.layers[j]);
+            delete this.layers[j];
+        }
+    }
+    this.markers.length = 0;
+    pm.selected_marker = null;
+    pm.freeze = false;
+    if (pm.polling_task != null) {
+        clearInterval(pm.polling_task);
+        pm.polling_task = null;
+    }
+    // pm.map.remove();
+    this.initialize();
+    console.log("done : .map.initialize");
 };
 
 pm.initLayers = function () {
@@ -158,6 +202,8 @@ pm.startPolling = function () {
 //    });
 //};
 
+
+// --------------------------------------------- Stub Data -------------------------------------------------------------
 function StubMarker(seed) {
     this.ids = ["Device_01", "Device_02", "Device_03", "Device_04", "Device_05", "Device_06", "Device_07", "Device_08", "Device_09"];
     this.layers = ["Category 1", "Category 2"];
@@ -208,21 +254,9 @@ StubMarker.prototype.update = function () {
     };
 };
 
-
-// TODO : Replace this stub with real data.
-pm.markers = [
-    new StubMarker(8),
-    new StubMarker(1),
-    new StubMarker(2),
-    new StubMarker(3),
-    new StubMarker(4),
-    new StubMarker(5),
-    new StubMarker(6),
-    new StubMarker(7),
-    new StubMarker(9)
-];
+// TODO : Replace this stub function with real data.
 pm.poll = function () {
-    setInterval(function () {
+    pm.polling_task  = setInterval(function () {
         if (config.single_marker_mode) {
             pm.processPointMessage(pm.markers[0].update());
         } else {
@@ -234,6 +268,7 @@ pm.poll = function () {
         }
     }, 500);
 };
+// --------------------------------------------- END Stub Data ---------------------------------------------------------
 
 pm.processPointMessage = function (geoJson) {
     if (geoJson.id in pm.markers) {
