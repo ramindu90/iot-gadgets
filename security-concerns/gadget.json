@@ -1,0 +1,9 @@
+{
+  "id": "security-concerns",
+  "title": "Security Concerns",
+  "type": "gadget",
+  "thumbnail": "store://gadget/security-concerns/img/thumbnail.png",
+  "data": {
+    "url": "store://gadget/security-concerns/index.xml"
+  }
+}

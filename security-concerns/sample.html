@@ -1,0 +1,392 @@
+<!--
+~   Copyright (c) WSO2 Inc. (http://wso2.com) All Rights Reserved.
+~
+~   Licensed under the Apache License, Version 2.0 (the "License");
+~   you may not use this file except in compliance with the License.
+~   You may obtain a copy of the License at
+~
+~        http://www.apache.org/licenses/LICENSE-2.0
+~
+~   Unless required by applicable law or agreed to in writing, software
+~   distributed under the License is distributed on an "AS IS" BASIS,
+~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~   See the License for the specific language governing permissions and
+~   limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>VizGrammar.js - Bar Chart Sample</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="../../css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../css/VizGrammar.css">
+    <link rel="stylesheet" href="../../css/custom.css">
+
+    <script src="../../js/d3.min.js"></script>
+    <script src="../../js/topojson.js"></script>
+    <script src="../../js/vega.js"></script>
+    <script src="../../js/VizGrammar.min.js"></script>
+    <script src="../../js/VizGrammarSettings.js"></script>
+
+</head>
+<body>
+
+<!-- nav -->
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed hidden" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="../../">VizGrammar</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse hidden">
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="#">Home</a></li>
+            </ul>
+        </div><!--/.nav-collapse -->
+    </div>
+</nav>
+
+<div class="container">
+
+    <div class="row">
+
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Bar Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChart"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Horizontal Bar Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartH"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Stack Bar Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartStack"></div>
+                </div>
+
+            </div>
+        </div>
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Horizontal Stack Bar Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartStackH"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Group Bar Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartGroup"></div>
+                </div>
+
+            </div>
+        </div>
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Horizontal Group Bar Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartGroupH"></div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Data Collection
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="data set">
+<pre>
+{
+  "metadata" : {
+      "names" : ["rpm","torque","horsepower", "EngineType"],
+      "types" : ["linear","linear", "ordinal","ordinal"]
+  },
+  "data": [
+    [1, 10, 1, "Piston"],[2, 10, 1, "Piston2"],[3, 10, 1, "Piston3"]]
+};
+</pre>
+
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Configurations
+                    </h3>
+                </div>
+                <div class="panel-body">
+                      <pre>
+{
+    type: "bar",
+    x : "rpm",
+    charts : [{type: "bar",  y : "torque", color:"EngineType"}],
+    maxLength: 6,
+    width: 400,
+    height: 200
+}
+                      </pre>
+
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Value</th>
+                            <th>Description</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="info">
+                            <td>title</td>
+                            <td>String</td>
+                            <td>Title of the table</td>
+                        </tr>
+                        <tr class="danger">
+                            <td>x</td>
+                            <td>String</td>
+                            <td>cAttribute name for X-axis</td>
+                        </tr>
+                        <tr class="danger">
+                            <td>maxLength</td>
+                            <td>int</td>
+                            <td>Maximum length of chart datatable</td>
+
+                        </tr>
+
+                        <tr class="danger">
+                            <td>height</td>
+                            <td>px</td>
+                            <td>height of the chart</td>
+
+                        </tr>
+
+                        <tr class="danger">
+                            <td>charts</td>
+                            <td>object</td>
+                            <td>Collection of charts</td>
+
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Value</th>
+                            <th>Description</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="danger">
+                            <td>type</td>
+                            <td>String</td>
+                            <td>Title of the table</td>
+                        </tr>
+                        <tr class="danger">
+                            <td>y</td>
+                            <td>String</td>
+                            <td>Attribute name for Y-axis</td>
+
+                        </tr>
+
+
+                        </tbody>
+                    </table>
+
+                </div>
+
+            </div>
+        </div>
+
+        <script>
+
+            var data =  [
+                {
+                    "metadata" : {
+                        "names" : ["rpm","torque","horsepower", "EngineType"],
+                        "types" : ["ordinal","linear", "ordinal","ordinal"]
+                    },
+                    "data": [ [1, 10, 1, "Piston"],[2, 10, 1, "Piston2"],[3, 10, 1, "Piston3"]
+                    ]
+                }
+            ];
+
+
+            var config = {
+                type: "bar",
+                x : "rpm",
+                charts : [{type: "bar",  y : "torque"}],
+                maxLength: 6,
+                width: 500,
+                height: 250
+            }
+
+            var configStack = {
+                type: "bar",
+                x : "rpm",
+                charts : [{type: "bar",  y : "torque", color: "EngineType", mode:"stack"}],
+                maxLength: 12,
+                width: 500,
+                height: 250
+            }
+
+            var configGroup = {
+                type: "bar",
+                x : "rpm",
+                charts : [{type: "bar",  y : "torque", color: "EngineType", mode:"group"}],
+                maxLength: 12,
+                width: 500,
+                height: 250
+            }
+
+            var configH = {
+                type: "bar",
+                x : "rpm",
+                charts : [{type: "bar",  y : "torque", orientation : "left"}],
+                maxLength: 6,
+                width: 500,
+                height: 250
+            }
+
+            var configStackH = {
+                type: "bar",
+                x : "rpm",
+                charts : [{type: "bar",  y : "torque", color: "EngineType", mode:"stack", orientation : "left"}],
+                maxLength: 12,
+                width: 500,
+                height: 250
+            }
+
+            var configGroupH = {
+                type: "bar",
+                x : "rpm",
+                charts : [{type: "bar",  y : "torque", color: "EngineType", mode:"group", orientation : "left"}],
+                maxLength: 12,
+                width: 500,
+                height: 250
+            }
+
+            var barChart = new vizg(data, config);
+            barChart.draw("#dChart");
+
+            var barChartStack = new vizg(data, configStack);
+            barChartStack.draw("#dChartStack");
+
+            var barChartGroup = new vizg(data, configGroup);
+            barChartGroup.draw("#dChartGroup");
+
+            var barChartH = new vizg(data, configH);
+            barChartH.draw("#dChartH");
+
+            var barChartStackH = new vizg(data, configStackH);
+            barChartStackH.draw("#dChartStackH");
+
+            var barChartGroupH = new vizg(data, configGroupH);
+            barChartGroupH.draw("#dChartGroupH");
+
+
+
+
+            var iterations = 1000;
+            (function insertLoop (i) {
+                setTimeout(function () {
+
+                    barChartGroup.insert([ [3, 20, 1, "Piston3"]]);
+                    // var xVal =  Number((Math.random() * 100).toFixed(0))%15;
+                    // barChart.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);
+                    // barChartStack.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);
+                    // barChartStack.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]);
+                    // barChartGroup.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);
+                    // barChartGroup.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]);
+
+                    // barChartH.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);
+                    // barChartStackH.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);
+                    // barChartStackH.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]);
+                    // barChartGroupH.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);
+                    // barChartGroupH.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]);
+                    if (--i) insertLoop(i);
+                }, 1000)
+            })(iterations);
+        </script>
+    </div>
+
+</div>
+
+<!-- footer -->
+<footer class="footer">
+    <div class="container">
+        <p>VizGrammar.js v1.0.0 | &copy; <script>document.write(new Date().getFullYear());</script> WSO2 Inc.</p>
+    </div>
+</footer>
+
+</body>
+</html>
