@@ -1,0 +1,9 @@
+{
+  "id": "generic-stack",
+  "title": "Generic Stack",
+  "type": "gadget",
+  "thumbnail": "store://gadget/generic-stack/img/thumbnail.png",
+  "data": {
+    "url": "store://gadget/generic-stack/index.xml"
+  }
+}
