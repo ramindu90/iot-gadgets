@@ -1,0 +1,9 @@
+{
+  "id": "generic-bar",
+  "title": "Generic Bar Chart",
+  "type": "gadget",
+  "thumbnail": "store://gadget/generic-bar/img/thumbnail.png",
+  "data": {
+    "url": "store://gadget/generic-bar/index.xml"
+  }
+}
