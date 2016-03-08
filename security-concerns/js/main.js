@@ -18,6 +18,7 @@
 var bc = bc || {};
 bc.chart = null;
 bc.polling_task = null;
+bc.async_tasks = 0;
 bc.data = [];
 bc.div = "#chart";
 bc.meta = {
@@ -27,79 +28,115 @@ bc.meta = {
 bc.config = {
     type: "bar",
     x: "type",
-    charts: [{type: "bar", y: "count", color: "type", mode: "group"}],
+    charts: [
+        {
+            type: "bar",
+            y: "count",
+            color: "type",
+            mode: "group"
+        }
+    ],
     width: 500,
     height: 250
 };
 
+$(document).ready(function () {
+    bc.initialize();
+});
+
 bc.initialize = function () {
-    bc.fetch();
-    bc.chart = new vizg({
-        "metadata": this.meta,
-        "data": bc.data
-    }, bc.config);
-    barChartGroup.draw("#chart");
+    bc.chart = new vizg(
+        [
+            {
+                "metadata": this.meta,
+                "data": bc.data
+            }
+        ],
+        bc.config
+    );
+    bc.chart.draw("#chart");
+    bc.startPolling();
 };
 
-pm.startPolling = function () {
+bc.startPolling = function () {
     this.polling_task = setInterval(function () {
-        // TODO : Here goes the polling task
+        bc.update();
     }, gadgetConfig.polling_interval);
 };
 
-bc.update = function() {
-    bc.fetch();
-    barChartGroup.insert(bc.data);
+bc.update = function () {
+    bc.fetch(function (data) {
+        bc.chart.insert(data);
+    });
 };
 
-bc.fetch = function(cb) {
-    bc.data.length = 0;
-    for (var i in gadgetConfig.columns) {
-        if (gadgetConfig.columns.hasOwnProperty(i)) {
-            $.get(gadgetConfig.columns[i]["source"], function (data) {
-                data = JSON.parse(data);
-                if (data.status == 200) {
-                    bc.data.push([gadgetConfig.columns[i]["name"], data.data]); // TODO : This / That Issue
-                }
-            });
+bc.fetch = function (cb) {
+    if (bc.async_tasks === 0) {
+        bc.async_tasks = gadgetConfig.columns.length;
+        bc.data.length = 0;
+        for (var i in gadgetConfig.columns) {
+            if (gadgetConfig.columns.hasOwnProperty(i)) {
+                $.ajax({
+                    url: gadgetConfig.columns[i]["source"],
+                    method: "get",
+                    data: {},
+                    key: gadgetConfig.columns[i]["name"],
+                    success: function (data) {
+                        data = JSON.parse(data);
+                        if (data.status === 200) {
+                            bc.data.push([this.key, data.data]);
+                            if (bc.data.length === gadgetConfig.columns.length) cb(bc.data);
+                        }
+                    },
+                    complete: function (jqXHR, status) {
+                        if (status !== 'success') console.warn("Error accessing source for : " + this.key);
+                        bc.async_tasks--;
+                    }
+                });
+            }
         }
     }
 };
 
-var iterations = 0;
-(function insertLoop(i, n) {
-    setTimeout(function () {
-        var d = [
-            ["non-compliant", i],
-            ["unmonitored", i],
-            ["no-passcode", i],
-            ["no-encryption", i]
-        ];
-        console.log(JSON.stringify(d));
 
-        barChartGroup.insert(data);
-        if (n === "+") {
-            i++;
-            if (i < 10) insertLoop(i, "+");
-            else insertLoop(i, "-");
-        } else {
-            i--;
-            if (i > 0) insertLoop(i, "-");
-        }
-    }, 1000)
-})(iterations, "+");
+/*
+ var iterations = 0;
+ (function insertLoop(i, n) {
+ setTimeout(function () {
+ var d = [
+ ["non-compliant", i],
+ ["unmonitored", i],
+ ["no-passcode", i],
+ ["no-encryption", i]
+ ];
+ console.log(JSON.stringify(d));
+
+ barChartGroup.insert(data);
+ if (n === "+") {
+ i++;
+ if (i < 10) insertLoop(i, "+");
+ else insertLoop(i, "-");
+ } else {
+ i--;
+ if (i > 0) insertLoop(i, "-");
+ }
+ }, 1000)
+ })(iterations, "+");
+ */
 
 
-/*var iterations = 1000;
-(function insertLoop(i) {
-    setTimeout(function () {
-        console.log("drawing");
-        barChartGroup.insert([
-            ["non-compliant", Number((Math.random() * 100).toFixed(0)) % 15],
-            ["unmonitored", Number((Math.random() * 100).toFixed(0)) % 15],
-            ["no-passcode", Number((Math.random() * 100).toFixed(0)) % 15],
-            ["no-encryption", Number((Math.random() * 100).toFixed(0)) % 15]
-        ]);
-        if (--i) insertLoop(i);
-    }, 1000)
-})(iterations);*/
+/*
+ var iterations = 1000;
+ (function insertLoop(i) {
+ setTimeout(function () {
+ console.log("drawing");
+ barChartGroup.insert([
+ ["non-compliant", Number((Math.random() * 100).toFixed(0)) % 15],
+ ["unmonitored", Number((Math.random() * 100).toFixed(0)) % 15],
+ ["no-passcode", Number((Math.random() * 100).toFixed(0)) % 15],
+ ["no-encryption", Number((Math.random() * 100).toFixed(0)) % 15]
+ ]);
+ if (--i) insertLoop(i);
+ }, 1000)
+ })(iterations);
+ */

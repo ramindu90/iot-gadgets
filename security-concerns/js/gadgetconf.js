@@ -29,7 +29,7 @@ var gadgetConfig = {
         },
         {
             "name": "unmonitored",
-            "source": "/portal/custom/policy-count"
+            "source": "/portal/custom/user-count"
         },
         {
             "name": "no-passcode",
@@ -37,7 +37,7 @@ var gadgetConfig = {
         },
         {
             "name": "no-encryption",
-            "source": "/portal/custom/policy-count"
+            "source": "/portal/custom/user-count"
         }
     ],
     "domain": "carbon.super"
