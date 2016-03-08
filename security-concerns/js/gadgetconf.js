@@ -19,8 +19,6 @@
 var gadgetConfig = {
     "id": "security-concerns",
     "title": "Security Concerns",
-    "author":"WSO2 Gadget Server",
-    "description":"EMM Device Security Concerns",
     "polling_interval": 1000,
     "columns": [
         {
