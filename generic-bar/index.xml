@@ -23,6 +23,7 @@
                  scrolling="false"
                  tags="stack,chart,data,visualization"
                  description="Generic Bar Chart Implementation">
+        <Require feature="pubsub-2"/>
     </ModulePrefs>
     <Content type="html">
         <![CDATA[

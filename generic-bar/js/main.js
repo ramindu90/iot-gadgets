@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -40,10 +40,6 @@ bc.config = {
     height: 250
 };
 
-$(document).ready(function () {
-    bc.initialize();
-});
-
 bc.initialize = function () {
     bc.chart = new vizg(
         [
@@ -54,11 +50,17 @@ bc.initialize = function () {
         ],
         bc.config
     );
-    bc.chart.draw("#chart");
+    bc.chart.draw("#chart", [
+        {
+            type: "click",
+            callback: bc.onclick
+        }
+    ]);
     bc.startPolling();
 };
 
 bc.startPolling = function () {
+    bc.update();
     this.polling_task = setInterval(function () {
         bc.update();
     }, gadgetConfig.polling_interval);
@@ -97,3 +99,37 @@ bc.fetch = function (cb) {
         }
     }
 };
+
+bc.subscribe = function (callback) {
+    gadgets.HubSettings.onConnect = function () {
+        gadgets.Hub.subscribe("subscriber", function (topic, data, subscriber) {
+            callback(topic, data)
+        });
+    };
+};
+
+bc.publish = function (data) {
+    gadgets.Hub.publish("publisher", data);
+};
+
+bc.onclick = function (event, item) {
+    if (item != null) {
+        console.log(JSON.stringify(item.datum[bc.config.x]));
+        bc.publish(
+            {
+                "filter": gadgetConfig.id,
+                "selected": item.datum[bc.config.x]
+            }
+        );
+    }
+};
+
+bc.subscribe(function (topic, data) {
+    console.log("---subscribe-bc---");
+    console.log("topic: " + topic);
+    console.log("data: " + JSON.stringify(data));
+});
+
+$(document).ready(function () {
+    bc.initialize();
+});

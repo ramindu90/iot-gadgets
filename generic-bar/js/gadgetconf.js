@@ -19,7 +19,8 @@
 var gadgetConfig = {
     "id": "generic-bar",
     "title": "Generic Bar",
-    "polling_interval": 1000,
+    "polling_interval": 30000,
+    "pub_sub_channel": "filter",
     "columns": [
         {
             "name": "non-compliant",

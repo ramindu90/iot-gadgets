@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -49,10 +49,6 @@ sc.config = {
     height: 250
 };
 
-$(document).ready(function () {
-    sc.initialize();
-});
-
 sc.initialize = function () {
     sc.chart = new vizg(
         [
@@ -63,11 +59,17 @@ sc.initialize = function () {
         ],
         sc.config
     );
-    sc.chart.draw("#chart");
+    sc.chart.draw("#chart", [
+        {
+            type: "click",
+            callback: sc.onclick
+        }
+    ]);
     sc.startPolling();
 };
 
 sc.startPolling = function () {
+    sc.update();
     this.polling_task = setInterval(function () {
         sc.update();
     }, gadgetConfig.polling_interval);
@@ -114,45 +116,36 @@ sc.fetch = function (cb) {
     }
 };
 
+sc.subscribe = function (callback) {
+    gadgets.HubSettings.onConnect = function() {
+        gadgets.Hub.subscribe("subscriber", function (topic, data, subscriber) {
+            callback(topic, data)
+        });
+    };
+};
 
-/*
- var iterations = 0;
- (function insertLoop(i, n) {
- setTimeout(function () {
- var d = [
- ["non-compliant", i],
- ["unmonitored", i],
- ["no-passcode", i],
- ["no-encryption", i]
- ];
- console.log(JSON.stringify(d));
+sc.publish = function (data) {
+    gadgets.Hub.publish("publisher", data);
+};
 
- barChartGroup.insert(data);
- if (n === "+") {
- i++;
- if (i < 10) insertLoop(i, "+");
- else insertLoop(i, "-");
- } else {
- i--;
- if (i > 0) insertLoop(i, "-");
- }
- }, 1000)
- })(iterations, "+");
- */
+sc.onclick = function (event, item) {
+    if (item != null) {
+        console.log(JSON.stringify(item.datum.type));
+        sc.publish(
+            {
+                "filter": gadgetConfig.id,
+                "selected": item.datum[sc.config.x]
+            }
+        );
+    }
+};
 
+sc.subscribe(function (topic, data) {
+    console.log("---subscribe-sc---");
+    console.log("topic: " + topic);
+    console.log("data: " + JSON.stringify(data));
+});
 
-/*
- var iterations = 1000;
- (function insertLoop(i) {
- setTimeout(function () {
- console.log("drawing");
- barChartGroup.insert([
- ["non-compliant", Number((Math.random() * 100).toFixed(0)) % 15],
- ["unmonitored", Number((Math.random() * 100).toFixed(0)) % 15],
- ["no-passcode", Number((Math.random() * 100).toFixed(0)) % 15],
- ["no-encryption", Number((Math.random() * 100).toFixed(0)) % 15]
- ]);
- if (--i) insertLoop(i);
- }, 1000)
- })(iterations);
- */
+$(document).ready(function () {
+    sc.initialize();
+});

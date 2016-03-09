@@ -5,5 +5,17 @@
   "thumbnail": "store://gadget/generic-stack/img/thumbnail.png",
   "data": {
     "url": "store://gadget/generic-stack/index.xml"
+  },
+  "notify": {
+    "publisher": {
+      "type": "filter",
+      "description": "This notifies selected filter"
+    }
+  },
+  "listen": {
+    "subscriber": {
+      "type": "filter",
+      "description": "Used to listen to any filters"
+    }
   }
 }
