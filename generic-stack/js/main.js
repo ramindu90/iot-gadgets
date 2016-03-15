@@ -22,6 +22,7 @@ sc.async_tasks = 0;
 sc.sum = 0;
 sc.data = [];
 sc.filters = {};
+sc.selected_filters = [];
 sc.force_fetch = false;
 sc.div = "#chart";
 sc.meta = {
@@ -79,6 +80,7 @@ sc.startPolling = function () {
 
 sc.update = function (force) {
     sc.force_fetch = !sc.force_fetch ? force || false : true;
+    if (sc.force_fetch) console.log("Calling update");
     sc.fetch(function (data) {
         sc.chart.insert(data);
     });
@@ -138,11 +140,18 @@ sc.publish = function (data) {
 
 sc.onclick = function (event, item) {
     if (item != null) {
-        console.log(JSON.stringify(item.datum.type));
+        var filter = item.datum[sc.config.x];
+        var index = sc.selected_filters.indexOf(filter);
+        if (index !== -1) {
+            sc.selected_filters.splice(index, 1);
+        } else {
+            sc.selected_filters.push(filter);
+        }
+        console.log(JSON.stringify(sc.selected_filters));
         sc.publish(
             {
                 "filter": gadgetConfig.id,
-                "selected": item.datum[sc.config.x]
+                "selected": sc.selected_filters
             }
         );
     }
@@ -152,7 +161,9 @@ sc.subscribe(function (topic, data) {
     var updated = false;
     console.log("data :: " + JSON.stringify(data));
     if (typeof data != "undefined" && data != null) {
-        if (typeof data.selected === "undefined" || data.selected == null) {
+        if (typeof data.selected === "undefined"
+            || data.selected == null
+            || Object.prototype.toString.call( data.selected ) !== '[object Array]') {
             if (sc.filters.hasOwnProperty(data.filter)) {
                 delete sc.filters[data.filter];
                 updated = true;
@@ -161,7 +172,8 @@ sc.subscribe(function (topic, data) {
             if (typeof data.filter != "undefined"
                 && data.filter != null
                 && typeof data.selected != "undefined"
-                && data.selected != null) {
+                && data.selected != null
+                && Object.prototype.toString.call( data.selected ) === '[object Array]') {
                 sc.filters[data.filter] = data.selected;
                 updated = true;
             }

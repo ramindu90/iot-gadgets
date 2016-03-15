@@ -21,6 +21,7 @@ bc.polling_task = null;
 bc.async_tasks = 0;
 bc.data = [];
 bc.filters = {};
+bc.selected_filters = [];
 bc.force_fetch = false;
 bc.div = "#chart";
 bc.meta = {
@@ -70,6 +71,7 @@ bc.startPolling = function () {
 
 bc.update = function (force) {
     bc.force_fetch = !bc.force_fetch ? force || false : true;
+    if (bc.force_fetch) console.log("Calling update");
     bc.fetch(function (data) {
         bc.chart.insert(data);
     });
@@ -124,11 +126,18 @@ bc.publish = function (data) {
 
 bc.onclick = function (event, item) {
     if (item != null) {
-        console.log(JSON.stringify(item.datum[bc.config.x]));
+        var filter = item.datum[bc.config.x];
+        var index = bc.selected_filters.indexOf(filter);
+        if (index !== -1) {
+            bc.selected_filters.splice(index, 1);
+        } else {
+            bc.selected_filters.push(filter);
+        }
+        console.log(JSON.stringify(bc.selected_filters));
         bc.publish(
             {
                 "filter": gadgetConfig.id,
-                "selected": item.datum[bc.config.x]
+                "selected": bc.selected_filters
             }
         );
     }
@@ -138,7 +147,9 @@ bc.subscribe(function (topic, data) {
     var updated = false;
     console.log("data :: " + JSON.stringify(data));
     if (typeof data != "undefined" && data != null) {
-        if (typeof data.selected === "undefined" || data.selected == null) {
+        if (typeof data.selected === "undefined"
+            || data.selected == null
+            || Object.prototype.toString.call( data.selected ) !== '[object Array]') {
             if (bc.filters.hasOwnProperty(data.filter)) {
                 delete bc.filters[data.filter];
                 updated = true;
@@ -147,7 +158,8 @@ bc.subscribe(function (topic, data) {
             if (typeof data.filter != "undefined"
                 && data.filter != null
                 && typeof data.selected != "undefined"
-                && data.selected != null) {
+                && data.selected != null
+                && Object.prototype.toString.call( data.selected ) === '[object Array]') {
                 bc.filters[data.filter] = data.selected;
                 updated = true;
             }
