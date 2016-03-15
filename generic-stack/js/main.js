@@ -21,6 +21,8 @@ sc.polling_task = null;
 sc.async_tasks = 0;
 sc.sum = 0;
 sc.data = [];
+sc.filters = {};
+sc.force_fetch = false;
 sc.div = "#chart";
 sc.meta = {
     "names": ["title", "type", "count"],
@@ -75,7 +77,8 @@ sc.startPolling = function () {
     }, gadgetConfig.polling_interval);
 };
 
-sc.update = function () {
+sc.update = function (force) {
+    sc.force_fetch = !sc.force_fetch ? force || false : true;
     sc.fetch(function (data) {
         sc.chart.insert(data);
     });
@@ -86,12 +89,13 @@ sc.fetch = function (cb) {
         sc.async_tasks = gadgetConfig.columns.length;
         sc.data.length = 0;
         sc.sum = 0;
+        sc.force_fetch = false;
         for (var i in gadgetConfig.columns) {
             if (gadgetConfig.columns.hasOwnProperty(i)) {
                 $.ajax({
                     url: gadgetConfig.columns[i]["source"],
                     method: "get",
-                    data: {},
+                    data: sc.filters,
                     key: gadgetConfig.columns[i]["name"],
                     success: function (data) {
                         data = JSON.parse(data);
@@ -99,10 +103,14 @@ sc.fetch = function (cb) {
                             sc.sum += data.data;
                             sc.data.push([gadgetConfig.title, this.key, data.data]);
                             if (sc.data.length === gadgetConfig.columns.length) {
-                                for (var j = 0; j < sc.data.length; j++) {
-                                    sc.data[j][2] = (sc.data[j][2] / sc.sum) * 100;
+                                if (sc.force_fetch) {
+                                    sc.update();
+                                } else {
+                                    for (var j = 0; j < sc.data.length; j++) {
+                                        sc.data[j][2] = (sc.data[j][2] / sc.sum) * 100;
+                                    }
+                                    cb(sc.data);
                                 }
-                                cb(sc.data);
                             }
                         }
                     },
@@ -141,9 +149,25 @@ sc.onclick = function (event, item) {
 };
 
 sc.subscribe(function (topic, data) {
-    console.log("---subscribe-sc---");
-    console.log("topic: " + topic);
-    console.log("data: " + JSON.stringify(data));
+    var updated = false;
+    console.log("data :: " + JSON.stringify(data));
+    if (typeof data != "undefined" && data != null) {
+        if (typeof data.selected === "undefined" || data.selected == null) {
+            if (sc.filters.hasOwnProperty(data.filter)) {
+                delete sc.filters[data.filter];
+                updated = true;
+            }
+        } else {
+            if (typeof data.filter != "undefined"
+                && data.filter != null
+                && typeof data.selected != "undefined"
+                && data.selected != null) {
+                sc.filters[data.filter] = data.selected;
+                updated = true;
+            }
+        }
+    }
+    if (updated) sc.update(true);
 });
 
 $(document).ready(function () {

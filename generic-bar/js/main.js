@@ -20,6 +20,8 @@ bc.chart = null;
 bc.polling_task = null;
 bc.async_tasks = 0;
 bc.data = [];
+bc.filters = {};
+bc.force_fetch = false;
 bc.div = "#chart";
 bc.meta = {
     "names": ["type", "count"],
@@ -66,7 +68,8 @@ bc.startPolling = function () {
     }, gadgetConfig.polling_interval);
 };
 
-bc.update = function () {
+bc.update = function (force) {
+    bc.force_fetch = !bc.force_fetch ? force || false : true;
     bc.fetch(function (data) {
         bc.chart.insert(data);
     });
@@ -76,18 +79,25 @@ bc.fetch = function (cb) {
     if (bc.async_tasks === 0) {
         bc.async_tasks = gadgetConfig.columns.length;
         bc.data.length = 0;
+        bc.force_fetch = false;
         for (var i in gadgetConfig.columns) {
             if (gadgetConfig.columns.hasOwnProperty(i)) {
                 $.ajax({
                     url: gadgetConfig.columns[i]["source"],
                     method: "get",
-                    data: {},
+                    data: bc.filters,
                     key: gadgetConfig.columns[i]["name"],
                     success: function (data) {
                         data = JSON.parse(data);
                         if (data.status === 200) {
                             bc.data.push([this.key, data.data]);
-                            if (bc.data.length === gadgetConfig.columns.length) cb(bc.data);
+                            if (bc.data.length === gadgetConfig.columns.length) {
+                                if (bc.force_fetch) {
+                                    bc.update();
+                                } else {
+                                    cb(bc.data);
+                                }
+                            }
                         }
                     },
                     complete: function (jqXHR, status) {
@@ -125,9 +135,25 @@ bc.onclick = function (event, item) {
 };
 
 bc.subscribe(function (topic, data) {
-    console.log("---subscribe-bc---");
-    console.log("topic: " + topic);
-    console.log("data: " + JSON.stringify(data));
+    var updated = false;
+    console.log("data :: " + JSON.stringify(data));
+    if (typeof data != "undefined" && data != null) {
+        if (typeof data.selected === "undefined" || data.selected == null) {
+            if (bc.filters.hasOwnProperty(data.filter)) {
+                delete bc.filters[data.filter];
+                updated = true;
+            }
+        } else {
+            if (typeof data.filter != "undefined"
+                && data.filter != null
+                && typeof data.selected != "undefined"
+                && data.selected != null) {
+                bc.filters[data.filter] = data.selected;
+                updated = true;
+            }
+        }
+    }
+    if (updated) bc.update(true);
 });
 
 $(document).ready(function () {
