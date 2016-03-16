@@ -112,6 +112,10 @@ bc.fetch = function (cb) {
     }
 };
 
+bc.updateURL = function () {
+    updateURLParam(gadgetConfig.id, bc.selected_filters);
+};
+
 bc.subscribe = function (callback) {
     gadgets.HubSettings.onConnect = function () {
         gadgets.Hub.subscribe("subscriber", function (topic, data, subscriber) {
@@ -140,6 +144,7 @@ bc.onclick = function (event, item) {
                 "selected": bc.selected_filters
             }
         );
+        bc.updateURL();
     }
 };
 
@@ -159,7 +164,7 @@ bc.subscribe(function (topic, data) {
                 && data.filter != null
                 && typeof data.selected != "undefined"
                 && data.selected != null
-                && Object.prototype.toString.call( data.selected ) === '[object Array]') {
+                && Object.prototype.toString.call(data.selected) === '[object Array]') {
                 bc.filters[data.filter] = data.selected;
                 updated = true;
             }

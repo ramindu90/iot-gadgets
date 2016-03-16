@@ -44,6 +44,7 @@
                 <script src="js/VizGrammar.min.js"></script>
                 <script src="js/VizGrammarSettings.js"></script>
                 <script src="js/gadgetconf.js"></script>
+                <script src="js/analyticsUtils.js"></script>
                 <script src="js/main.js"></script>
             </head>
             <body style="margin-bottom: 0px;">
