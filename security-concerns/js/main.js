@@ -18,21 +18,25 @@
 var bc = bc || {};
 bc.chart = null;
 bc.polling_task = null;
-bc.async_tasks = 0;
 bc.data = [];
+bc.filters = {};
+bc.selected_filters = [];
+bc.force_fetch = false;
 bc.div = "#chart";
 bc.meta = {
-    "names": ["type", "count"],
-    "types": ["ordinal", "linear"]
+    "names": ["id", "name", "count"],
+    "types": ["ordinal", "ordinal", "linear"]
 };
 bc.config = {
     type: "bar",
-    x: "type",
+    x: "id",
     charts: [
         {
             type: "bar",
             y: "count",
-            color: "type",
+            color: "name",
+            xTitle: "",
+            yTitle: "",
             mode: "group"
         }
     ],
@@ -40,103 +44,130 @@ bc.config = {
     height: 250
 };
 
-$(document).ready(function () {
-    bc.initialize();
-});
-
 bc.initialize = function () {
     bc.chart = new vizg(
         [
             {
-                "metadata": this.meta,
+                "metadata": bc.meta,
                 "data": bc.data
             }
         ],
         bc.config
     );
-    bc.chart.draw("#chart");
+    bc.chart.draw("#chart", [
+        {
+            type: "click",
+            callback: bc.onclick
+        }
+    ]);
     bc.startPolling();
 };
 
 bc.startPolling = function () {
+    setTimeout(function () {bc.update();}, 500);
     this.polling_task = setInterval(function () {
         bc.update();
     }, gadgetConfig.polling_interval);
 };
 
-bc.update = function () {
+bc.update = function (force) {
+    bc.force_fetch = !bc.force_fetch ? force || false : true;
     bc.fetch(function (data) {
         bc.chart.insert(data);
     });
 };
 
 bc.fetch = function (cb) {
-    if (bc.async_tasks === 0) {
-        bc.async_tasks = gadgetConfig.columns.length;
-        bc.data.length = 0;
-        for (var i in gadgetConfig.columns) {
-            if (gadgetConfig.columns.hasOwnProperty(i)) {
-                $.ajax({
-                    url: gadgetConfig.columns[i]["source"],
-                    method: "get",
-                    data: {},
-                    key: gadgetConfig.columns[i]["name"],
-                    success: function (data) {
-                        data = JSON.parse(data);
-                        if (data.status === 200) {
-                            bc.data.push([this.key, data.data]);
-                            if (bc.data.length === gadgetConfig.columns.length) cb(bc.data);
-                        }
-                    },
-                    complete: function (jqXHR, status) {
-                        if (status !== 'success') console.warn("Error accessing source for : " + this.key);
-                        bc.async_tasks--;
+    bc.data.length = 0;
+    bc.force_fetch = false;
+    $.ajax({
+        url: gadgetConfig.source,
+        method: "get",
+        data: bc.filters,
+        success: function (response) {
+            if (response.status === "success") {
+                var data = response.data[gadgetConfig.data_property];
+                if (data && data.length > 0) {
+                    for (var i = 0; i < data.length; i++) {
+                        bc.data.push(
+                            [data[i]["id"], data[i]["name"], data[i]["count"]]
+                        );
                     }
-                });
+                    if (bc.force_fetch) {
+                        bc.update();
+                    } else {
+                        cb(bc.data);
+                    }
+                }
             }
+        },
+        complete: function (jqXHR, status) {
+            if (status !== "success") console.warn("Error accessing source for : " + gadgetConfig.id);
         }
+    });
+};
+
+bc.updateURL = function () {
+    updateURLParam(gadgetConfig.id, bc.selected_filters);
+};
+
+bc.subscribe = function (callback) {
+    gadgets.HubSettings.onConnect = function () {
+        gadgets.Hub.subscribe("subscriber", function (topic, data, subscriber) {
+            callback(topic, data)
+        });
+    };
+};
+
+bc.publish = function (data) {
+    gadgets.Hub.publish("publisher", data);
+};
+
+bc.onclick = function (event, item) {
+    if (item != null) {
+        var filter = item.datum[bc.config.x];
+        var index = bc.selected_filters.indexOf(filter);
+        if (index !== -1) {
+            bc.selected_filters.splice(index, 1);
+        } else {
+            bc.selected_filters.push(filter);
+        }
+        console.log(JSON.stringify(bc.selected_filters));
+        bc.publish(
+            {
+                "filter": gadgetConfig.id,
+                "selected": bc.selected_filters
+            }
+        );
+        bc.updateURL();
     }
 };
 
+bc.subscribe(function (topic, data) {
+    var updated = false;
+    console.log("data :: " + JSON.stringify(data));
+    if (typeof data != "undefined" && data != null) {
+        if (typeof data.selected === "undefined"
+            || data.selected == null
+            || Object.prototype.toString.call( data.selected ) !== '[object Array]') {
+            if (bc.filters.hasOwnProperty(data.filter)) {
+                delete bc.filters[data.filter];
+                updated = true;
+            }
+        } else {
+            if (typeof data.filter != "undefined"
+                && data.filter != null
+                && typeof data.selected != "undefined"
+                && data.selected != null
+                && Object.prototype.toString.call(data.selected) === '[object Array]') {
+                bc.filters[data.filter] = data.selected;
+                updated = true;
+            }
+        }
+    }
+    if (updated) bc.update(true);
+});
 
-/*
- var iterations = 0;
- (function insertLoop(i, n) {
- setTimeout(function () {
- var d = [
- ["non-compliant", i],
- ["unmonitored", i],
- ["no-passcode", i],
- ["no-encryption", i]
- ];
- console.log(JSON.stringify(d));
-
- barChartGroup.insert(data);
- if (n === "+") {
- i++;
- if (i < 10) insertLoop(i, "+");
- else insertLoop(i, "-");
- } else {
- i--;
- if (i > 0) insertLoop(i, "-");
- }
- }, 1000)
- })(iterations, "+");
- */
-
-
-/*
- var iterations = 1000;
- (function insertLoop(i) {
- setTimeout(function () {
- console.log("drawing");
- barChartGroup.insert([
- ["non-compliant", Number((Math.random() * 100).toFixed(0)) % 15],
- ["unmonitored", Number((Math.random() * 100).toFixed(0)) % 15],
- ["no-passcode", Number((Math.random() * 100).toFixed(0)) % 15],
- ["no-encryption", Number((Math.random() * 100).toFixed(0)) % 15]
- ]);
- if (--i) insertLoop(i);
- }, 1000)
- })(iterations);
- */
+$(document).ready(function () {
+    bc.initialize();
+});

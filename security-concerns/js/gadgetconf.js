@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c)  2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,24 +19,9 @@
 var gadgetConfig = {
     "id": "security-concerns",
     "title": "Security Concerns",
-    "polling_interval": 1000,
-    "columns": [
-        {
-            "name": "non-compliant",
-            "source": "/portal/custom/policy-count"
-        },
-        {
-            "name": "unmonitored",
-            "source": "/portal/custom/user-count"
-        },
-        {
-            "name": "no-passcode",
-            "source": "/portal/custom/policy-count"
-        },
-        {
-            "name": "no-encryption",
-            "source": "/portal/custom/user-count"
-        }
-    ],
+    "polling_interval": 30000,
+    "pub_sub_channel": "filter",
+    "source": "https://0.0.0.0:8080/securityConcerns",
+    "data_property": "security-concerns",
     "domain": "carbon.super"
 };
