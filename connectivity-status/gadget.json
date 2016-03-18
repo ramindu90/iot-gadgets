@@ -1,0 +1,21 @@
+{
+  "id": "connectivity-status",
+  "title": "Connectivity Status",
+  "type": "gadget",
+  "thumbnail": "store://gadget/connectivity-status/img/thumbnail.png",
+  "data": {
+    "url": "store://gadget/connectivity-status/index.xml"
+  },
+  "notify": {
+    "publisher": {
+      "type": "filter",
+      "description": "This notifies selected filter"
+    }
+  },
+  "listen": {
+    "subscriber": {
+      "type": "filter",
+      "description": "Used to listen to any filters"
+    }
+  }
+}
