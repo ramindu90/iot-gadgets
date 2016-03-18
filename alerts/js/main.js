@@ -19,7 +19,9 @@ var bc = bc || {};
 bc.chart = null;
 bc.polling_task = null;
 bc.data = [];
-bc.filters = {};
+bc.filter_key = null;
+bc.filters_meta = {};
+bc.filters = [];
 bc.selected_filters = [];
 bc.force_fetch = false;
 bc.div = "#chart";
@@ -37,7 +39,7 @@ bc.config = {
             color: "name",
             xTitle: "",
             yTitle: "",
-            orientation : "left",
+            orientation: "left",
             mode: "group"
         }
     ],
@@ -65,7 +67,9 @@ bc.initialize = function () {
 };
 
 bc.startPolling = function () {
-    setTimeout(function () {bc.update();}, 500);
+    setTimeout(function () {
+        bc.update();
+    }, 500);
     this.polling_task = setInterval(function () {
         bc.update();
     }, gadgetConfig.polling_interval);
@@ -83,22 +87,23 @@ bc.fetch = function (cb) {
     bc.force_fetch = false;
     $.ajax({
         url: gadgetConfig.source,
-        method: "get",
+        method: "POST",
+        dataType   : 'json',
+        contentType: 'application/json',
         data: bc.filters,
         success: function (response) {
-            if (response.status === "success") {
-                var data = response.data[gadgetConfig.data_property];
-                if (data && data.length > 0) {
-                    for (var i = 0; i < data.length; i++) {
-                        bc.data.push(
-                            [data[i]["id"], data[i]["name"], data[i]["count"]]
-                        );
-                    }
-                    if (bc.force_fetch) {
-                        bc.update();
-                    } else {
-                        cb(bc.data);
-                    }
+            bc.filter_key = response["filteredBy"];
+            var data = response["data"];
+            if (data && data.length > 0) {
+                for (var i = 0; i < data.length; i++) {
+                    bc.data.push(
+                        [data[i]["id"], data[i]["label"], data[i]["count"]]
+                    );
+                }
+                if (bc.force_fetch) {
+                    bc.update();
+                } else {
+                    cb(bc.data);
                 }
             }
         },
@@ -109,7 +114,7 @@ bc.fetch = function (cb) {
 };
 
 bc.updateURL = function () {
-    updateURLParam(gadgetConfig.id, bc.selected_filters);
+    updateURLParam(bc.filter_key, bc.selected_filters);
 };
 
 bc.subscribe = function (callback) {
@@ -134,12 +139,10 @@ bc.onclick = function (event, item) {
             bc.selected_filters.push(filter);
         }
         console.log(JSON.stringify(bc.selected_filters));
-        bc.publish(
-            {
-                "filter": gadgetConfig.id,
-                "selected": bc.selected_filters
-            }
-        );
+        bc.publish({
+            "filter": bc.filter_key,
+            "selections": bc.selected_filters
+        });
         bc.updateURL();
     }
 };
@@ -148,25 +151,35 @@ bc.subscribe(function (topic, data) {
     var updated = false;
     console.log("data :: " + JSON.stringify(data));
     if (typeof data != "undefined" && data != null) {
-        if (typeof data.selected === "undefined"
-            || data.selected == null
-            || Object.prototype.toString.call( data.selected ) !== '[object Array]') {
-            if (bc.filters.hasOwnProperty(data.filter)) {
-                delete bc.filters[data.filter];
+        if (typeof data.selections === "undefined"
+            || data.selections === null
+            || Object.prototype.toString.call(data.selections) !== '[object Array]'
+            || data.selections.length === 0) {
+            if (bc.filters_meta.hasOwnProperty(data.filter)) {
+                delete bc.filters_meta[data.filter];
                 updated = true;
             }
         } else {
             if (typeof data.filter != "undefined"
                 && data.filter != null
-                && typeof data.selected != "undefined"
-                && data.selected != null
-                && Object.prototype.toString.call(data.selected) === '[object Array]') {
-                bc.filters[data.filter] = data.selected;
+                && typeof data.selections != "undefined"
+                && data.selections != null
+                && Object.prototype.toString.call(data.selections) === '[object Array]'
+                && data.selections.length > 0) {
+                bc.filters_meta[data.filter] = data;
                 updated = true;
             }
         }
     }
-    if (updated) bc.update(true);
+    if (updated) {
+        bc.filters.length = 0;
+        for (var i in bc.filters_meta) {
+            if (bc.filters_meta.hasOwnProperty(i)) {
+                bc.filters.push(bc.filters_meta[i]);
+            }
+        }
+        bc.update(true);
+    }
 });
 
 $(document).ready(function () {
