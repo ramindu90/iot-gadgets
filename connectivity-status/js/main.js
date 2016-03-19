@@ -24,6 +24,7 @@ bc.filters_meta = {};
 bc.filters = [];
 bc.selected_filters = [];
 bc.force_fetch = false;
+bc.freeze = false;
 bc.div = "#chart";
 bc.meta = {
     "names": ["id", "name", "count"],
@@ -76,9 +77,11 @@ bc.startPolling = function () {
 
 bc.update = function (force) {
     bc.force_fetch = !bc.force_fetch ? force || false : true;
-    bc.fetch(function (data) {
-        bc.chart.insert(data);
-    });
+    if (!bc.freeze) {
+        bc.fetch(function (data) {
+            bc.chart.insert(data);
+        });
+    }
 };
 
 bc.fetch = function (cb) {
@@ -137,12 +140,13 @@ bc.onclick = function (event, item) {
         } else {
             bc.selected_filters.push(filter);
         }
-        console.log(JSON.stringify(bc.selected_filters));
         bc.publish({
             "filter": bc.filter_key,
             "selections": bc.selected_filters
         });
+        bc.freeze = bc.selected_filters.length > 0;
         bc.updateURL();
+        bc.update(true);
     }
 };
 
