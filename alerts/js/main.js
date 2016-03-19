@@ -88,9 +88,9 @@ bc.fetch = function (cb) {
     $.ajax({
         url: gadgetConfig.source,
         method: "POST",
-        dataType   : 'json',
+        dataType: 'json',
         contentType: 'application/json',
-        data: bc.filters,
+        data: JSON.stringify(bc.filters),
         success: function (response) {
             bc.filter_key = response["filteredBy"];
             var data = response["data"];
