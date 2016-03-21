@@ -37,7 +37,7 @@
                 <link rel="stylesheet" href="css/style.css" type="text/css"/>
 
                 <!-- JS -->
-                <script src="/portal/js/jquery-1.10.2.js"></script>
+                <script src="js/jquery.js"></script>
                 <script src="js/d3.min.js"></script>
                 <script src="js/topojson.js"></script>
                 <script src="js/vega.js"></script>
