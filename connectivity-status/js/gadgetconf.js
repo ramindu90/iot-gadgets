@@ -18,10 +18,8 @@
 
 var gadgetConfig = {
     "id": "connectivity-status",
-    "title": "Connectivity Status",
     "polling_interval": 30000,
     "pub_sub_channel": "filter",
     "source": "https://0.0.0.0:8080/connectivityStatus",
-    "data_property": "connectivity-status",
     "domain": "carbon.super"
 };

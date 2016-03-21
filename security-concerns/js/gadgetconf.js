@@ -18,10 +18,8 @@
 
 var gadgetConfig = {
     "id": "security-concerns",
-    "title": "Security Concerns",
     "polling_interval": 30000,
     "pub_sub_channel": "filter",
     "source": "https://0.0.0.0:8080/securityConcerns",
-    "data_property": "security-concerns",
     "domain": "carbon.super"
 };

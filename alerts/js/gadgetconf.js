@@ -18,10 +18,8 @@
 
 var gadgetConfig = {
     "id": "alerts",
-    "title": "Alerts",
     "polling_interval": 30000,
     "pub_sub_channel": "filter",
     "source": "https://0.0.0.0:8080/alerts",
-    "data_property": "alerts",
     "domain": "carbon.super"
 };
