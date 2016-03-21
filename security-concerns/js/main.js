@@ -22,6 +22,7 @@ bc.data = [];
 bc.filter_key = null;
 bc.filters_meta = {};
 bc.filters = [];
+bc.filter_prefix = "g_";
 bc.selected_filters = [];
 bc.force_fetch = false;
 bc.freeze = false;
@@ -63,7 +64,33 @@ bc.initialize = function () {
             callback: bc.onclick
         }
     ]);
+    bc.loadFiltersFromURL();
     bc.startPolling();
+};
+
+bc.loadFiltersFromURL = function() {
+    bc.filter_key = $.ajax({
+        url: gadgetConfig.source,
+        method: "POST",
+        data: JSON.stringify({}),
+        async: false
+    }).responseJSON.filteredBy;
+    var params = getURLParams();
+    for (var filter in params) {
+        if (params.hasOwnProperty(filter)
+            && filter.lastIndexOf(bc.filter_prefix, 0) === 0) {
+            var filter_key = filter.substring(bc.filter_prefix.length);
+            if (bc.filter_key === filter_key) {
+                bc.selected_filters = params[filter];
+            } else {
+                bc.updateFilters({
+                    filter: filter_key,
+                    selections: params[filter]
+                });
+            }
+        }
+    }
+    // TODO : update selected bars (UI)
 };
 
 bc.startPolling = function () {
@@ -116,7 +143,7 @@ bc.fetch = function (cb) {
 };
 
 bc.updateURL = function () {
-    updateURLParam(bc.filter_key, bc.selected_filters);
+    updateURLParam(bc.filter_prefix + bc.filter_key, bc.selected_filters);
 };
 
 bc.subscribe = function (callback) {
@@ -150,9 +177,8 @@ bc.onclick = function (event, item) {
     }
 };
 
-bc.subscribe(function (topic, data) {
+bc.updateFilters = function (data) {
     var updated = false;
-    console.log("data :: " + JSON.stringify(data));
     if (typeof data != "undefined" && data != null) {
         if (typeof data.selections === "undefined"
             || data.selections === null
@@ -183,6 +209,10 @@ bc.subscribe(function (topic, data) {
         }
         bc.update(true);
     }
+};
+
+bc.subscribe(function (topic, data) {
+    bc.updateFilters(data);
 });
 
 $(document).ready(function () {
