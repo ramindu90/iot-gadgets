@@ -41,12 +41,12 @@ bc.config = {
             color: "name",
             xTitle: "",
             yTitle: "",
-            orientation: "left",
             mode: "group"
         }
     ],
-    width: 500,
-    height: 250
+    width: $(window).width()* 0.95,
+    height: $(window).width() * 0.65 > $(window).height() ? $(window).height() : $(window).width() * 0.65,
+    padding: { "top": 18, "left": 30, "bottom": 22, "right": 70 }
 };
 
 bc.initialize = function () {
