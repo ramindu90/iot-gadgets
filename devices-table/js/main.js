@@ -40,8 +40,17 @@ bc.config = {
         columns: ["deviceID", "deviceName", "status", "platform", "model", "actions"],
         columnTitles: ["Id", "Device", "Status", "Platform", "Model", "Actions"]
     }],
-    width: 400,
-    height: 300
+    width: $(window).width()* 0.95,
+    height: $(window).width() * 0.65 > $(window).height() ? $(window).height() : $(window).width() * 0.65,
+    padding: { "top": 18, "left": 30, "bottom": 22, "right": 70 }
+};
+bc.cell_templates = {
+    'deviceID' : '<input class="deviceID" type="checkbox" name="device" value="{{deviceID}}">',
+    'deviceName' : '<i class="fw fw-mobile"></i> {{deviceName}}',
+    'status' : '{{status}}',
+    'platform' : '{{platform}}',
+    'model' : '{{model}}',
+    'actions' : '<a href="#">{{actions}}</a>'
 };
 
 bc.initialize = function () {
@@ -97,7 +106,6 @@ bc.update = function (force) {
 bc.fetch = function (cb) {
     bc.data.length = 0;
     bc.force_fetch = false;
-    console.log("fetch");
     $.ajax({
         url: gadgetConfig.source,
         method: "POST",
@@ -110,7 +118,14 @@ bc.fetch = function (cb) {
             if (data && data.length > 0) {
                 for (var i = 0; i < data.length; i++) {
                     bc.data.push(
-                        [data[i]["id"], data[i]["label"], data[i]["status"], data[i]["platform"], data[i]["model"], data[i]["actions"]]
+                        [
+                            Mustache.to_html(bc.cell_templates['deviceID'], {'deviceID': data[i]["id"]}),
+                            Mustache.to_html(bc.cell_templates['deviceName'], {'deviceName': data[i]["label"]}),
+                            Mustache.to_html(bc.cell_templates['status'], {'status': data[i]["status"]}),
+                            Mustache.to_html(bc.cell_templates['platform'], {'platform': data[i]["platform"]}),
+                            Mustache.to_html(bc.cell_templates['model'], {'model': data[i]["model"]}),
+                            Mustache.to_html(bc.cell_templates['actions'], {'actions': data[i]["actions"]})
+                        ]
                     );
                 }
                 if (bc.force_fetch) {
