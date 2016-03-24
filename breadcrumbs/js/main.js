@@ -137,7 +137,6 @@ bc.addBreadcrumb = function (filterKey, selectedFilters) {
 };
 
 bc.removeBreadcrumb = function (filterKey, filterSelection) {
-    console.log("ff");
     var breadcrumbId = filterKey + '_' + filterSelection;
     var currentFilters = bc.filters_meta[filterKey]['selections'];
     if (currentFilters) {
