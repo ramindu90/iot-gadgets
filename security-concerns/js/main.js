@@ -44,9 +44,9 @@ bc.config = {
             mode: "group"
         }
     ],
-    width: $(window).width()* 0.95,
+    width: $(window).width() * 0.95,
     height: $(window).width() * 0.65 > $(window).height() ? $(window).height() : $(window).width() * 0.65,
-    padding: { "top": 18, "left": 30, "bottom": 22, "right": 70 }
+    padding: {"top": 18, "left": 30, "bottom": 22, "right": 70}
 };
 
 bc.initialize = function () {
@@ -69,7 +69,7 @@ bc.initialize = function () {
     bc.startPolling();
 };
 
-bc.loadFiltersFromURL = function() {
+bc.loadFiltersFromURL = function () {
     bc.filter_key = $.ajax({
         url: gadgetConfig.source,
         method: "POST",
@@ -91,6 +91,7 @@ bc.loadFiltersFromURL = function() {
             }
         }
     }
+    bc.freeze = bc.selected_filters.length > 0;
     // TODO : update selected bars (UI)
 };
 
@@ -179,37 +180,43 @@ bc.onclick = function (event, item) {
 };
 
 bc.updateFilters = function (data) {
-    var updated = false;
-    if (typeof data != "undefined" && data != null) {
-        if (typeof data.selections === "undefined"
-            || data.selections === null
+    var reload = false;
+    var update = false;
+    if (data) {
+        if (data.filter
+            && data.selections
+            && Object.prototype.toString.call(data.selections) === '[object Array]'
+            && data.filter === bc.filter_key) {
+            bc.selected_filters = data.selections.slice();
+            bc.freeze = bc.selected_filters.length > 0;
+            // TODO : update selected bars (UI)
+            reload = true;
+        } else if (!data.selections
             || Object.prototype.toString.call(data.selections) !== '[object Array]'
             || data.selections.length === 0) {
             if (bc.filters_meta.hasOwnProperty(data.filter)) {
                 delete bc.filters_meta[data.filter];
-                updated = true;
+                reload = true;
+                update = true;
             }
-        } else {
-            if (typeof data.filter != "undefined"
-                && data.filter != null
-                && typeof data.selections != "undefined"
-                && data.selections != null
-                && Object.prototype.toString.call(data.selections) === '[object Array]'
-                && data.selections.length > 0) {
-                bc.filters_meta[data.filter] = data;
-                updated = true;
-            }
+        } else if (data.filter
+            && data.selections
+            && Object.prototype.toString.call(data.selections) === '[object Array]'
+            && data.selections.length > 0) {
+            bc.filters_meta[data.filter] = data;
+            reload = true;
+            update = true;
         }
     }
-    if (updated) {
+    if (update) {
         bc.filters.length = 0;
         for (var i in bc.filters_meta) {
             if (bc.filters_meta.hasOwnProperty(i)) {
                 bc.filters.push(bc.filters_meta[i]);
             }
         }
-        bc.update(true);
     }
+    if (reload) bc.update(true);
 };
 
 bc.subscribe(function (topic, data) {
