@@ -20,9 +20,9 @@ var spec;
 
 function drawChart() {
     spec = {
-        width: $(window).width() * 0.95,
-        height: $(window).width() * 0.65 > $(window).height() ? $(window).height() : $(window).width() * 0.65,
-        "padding": {"top": 10, "left": 30, "bottom": 70, "right": 10},
+        "width": $(window).width() * 0.95,
+        "height": 200,
+        "padding": {"top": 10, "left": 30, "bottom": 40, "right": 10},
         "data": [
             {
                 "name": "table",
