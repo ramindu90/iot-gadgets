@@ -1,0 +1,21 @@
+{
+  "id": "filters",
+  "title": "Filters",
+  "type": "gadget",
+  "thumbnail": "store://gadget/filters/img/thumbnail.png",
+  "data": {
+    "url": "store://gadget/filters/index.xml"
+  },
+  "notify": {
+    "publisher": {
+      "type": "filter",
+      "description": "This notifies selected filter"
+    }
+  },
+  "listen": {
+    "subscriber": {
+      "type": "filter",
+      "description": "Used to listen to any filters"
+    }
+  }
+}
