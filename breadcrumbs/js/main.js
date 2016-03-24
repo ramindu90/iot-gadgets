@@ -122,11 +122,15 @@ bc.publish = function (data) {
 bc.addBreadcrumb = function (filterKey, selectedFilters) {
     for (var i = 0; i < selectedFilters.length; i++) {
         var breadcrumbKey = filterKey + '_' + selectedFilters[i];
+        var breadcrumbLable = filterKey.split(/(?=[A-Z])/).join(' ') + ':' + selectedFilters[i].split(/(?=[A-Z])/).join(' ');
+        breadcrumbLable = breadcrumbLable.replace(/\w\S*/g, function (txt) {
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+        });
         if (Object.prototype.toString.call(bc.breadcrumbs[filterKey]) !== '[object Array]') bc.breadcrumbs[filterKey] = [];
         var index = bc.breadcrumbs[filterKey].indexOf(selectedFilters[i]);
         if (index === -1) {
             bc.breadcrumbs[filterKey].push(selectedFilters[i]);
-            var html = Mustache.to_html(bc.breadcrumb_template, { 'id': breadcrumbKey, 'label': breadcrumbKey});
+            var html = Mustache.to_html(bc.breadcrumb_template, {'id': breadcrumbKey, 'label': breadcrumbLable});
             $('#breadcrumbs').append(html);
         }
     }
