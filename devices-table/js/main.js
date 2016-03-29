@@ -24,7 +24,7 @@ bc.filter_context = null;
 bc.filters_meta = {};
 bc.filters = [];
 bc.filter_prefix = "g_";
-bc.selected_filters = [];
+bc.selected_filter_groups = [];
 bc.force_fetch = false;
 bc.freeze = false;
 bc.div = "#table";
@@ -78,8 +78,8 @@ bc.loadFiltersFromURL = function () {
             && filter.lastIndexOf(bc.filter_prefix, 0) === 0) {
             var filter_context = filter.substring(bc.filter_prefix.length);
             bc.updateFilters({
-                filter: filter_context,
-                selections: params[filter]
+                filteringContext: filter_context,
+                filteringGroups: params[filter]
             });
         }
     }
@@ -161,22 +161,22 @@ bc.onclick = function (event, item) {
 bc.updateFilters = function (data) {
     var updated = false;
     if (typeof data != "undefined" && data != null) {
-        if (typeof data.selections === "undefined"
-            || data.selections === null
-            || Object.prototype.toString.call(data.selections) !== '[object Array]'
-            || data.selections.length === 0) {
-            if (bc.filters_meta.hasOwnProperty(data.filter)) {
-                delete bc.filters_meta[data.filter];
+        if (typeof data.filteringGroups === "undefined"
+            || data.filteringGroups === null
+            || Object.prototype.toString.call(data.filteringGroups) !== '[object Array]'
+            || data.filteringGroups.length === 0) {
+            if (bc.filters_meta.hasOwnProperty(data.filteringContext)) {
+                delete bc.filters_meta[data.filteringContext];
                 updated = true;
             }
         } else {
-            if (typeof data.filter != "undefined"
-                && data.filter != null
-                && typeof data.selections != "undefined"
-                && data.selections != null
-                && Object.prototype.toString.call(data.selections) === '[object Array]'
-                && data.selections.length > 0) {
-                bc.filters_meta[data.filter] = data;
+            if (typeof data.filteringContext != "undefined"
+                && data.filteringContext != null
+                && typeof data.filteringGroups != "undefined"
+                && data.filteringGroups != null
+                && Object.prototype.toString.call(data.filteringGroups) === '[object Array]'
+                && data.filteringGroups.length > 0) {
+                bc.filters_meta[data.filteringContext] = data;
                 updated = true;
             }
         }

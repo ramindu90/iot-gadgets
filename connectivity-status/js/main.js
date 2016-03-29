@@ -23,7 +23,7 @@ bc.filter_context = null;
 bc.filters_meta = {};
 bc.filters = [];
 bc.filter_prefix = "g_";
-bc.selected_filters = [];
+bc.selected_filter_groups = [];
 bc.force_fetch = false;
 bc.freeze = false;
 bc.div = "#chart";
@@ -82,16 +82,16 @@ bc.loadFiltersFromURL = function () {
             && filter.lastIndexOf(bc.filter_prefix, 0) === 0) {
             var filter_context = filter.substring(bc.filter_prefix.length);
             if (bc.filter_context === filter_context) {
-                bc.selected_filters = params[filter];
+                bc.selected_filter_groups = params[filter];
             } else {
                 bc.updateFilters({
-                    filter: filter_context,
-                    selections: params[filter]
+                    filteringContext: filter_context,
+                    filteringGroups: params[filter]
                 });
             }
         }
     }
-    bc.freeze = bc.selected_filters.length > 0;
+    bc.freeze = bc.selected_filter_groups.length > 0;
     // TODO : update selected bars (UI)
 };
 
@@ -149,7 +149,7 @@ bc.fetch = function (cb) {
 };
 
 bc.updateURL = function () {
-    updateURLParam(bc.filter_prefix + bc.filter_context, bc.selected_filters);
+    updateURLParam(bc.filter_prefix + bc.filter_context, bc.selected_filter_groups);
 };
 
 bc.subscribe = function (callback) {
@@ -166,18 +166,18 @@ bc.publish = function (data) {
 
 bc.onclick = function (event, item) {
     if (item != null) {
-        var filter = item.datum[bc.config.x];
-        var index = bc.selected_filters.indexOf(filter);
+        var filteringGroup = item.datum[bc.config.x];
+        var index = bc.selected_filter_groups.indexOf(filteringGroup);
         if (index !== -1) {
-            bc.selected_filters.splice(index, 1);
+            bc.selected_filter_groups.splice(index, 1);
         } else {
-            bc.selected_filters.push(filter);
+            bc.selected_filter_groups.push(filteringGroup);
         }
         bc.publish({
-            "filter": bc.filter_context,
-            "selections": bc.selected_filters
+            "filteringContext": bc.filter_context,
+            "filteringGroups": bc.selected_filter_groups
         });
-        bc.freeze = bc.selected_filters.length > 0;
+        bc.freeze = bc.selected_filter_groups.length > 0;
         bc.updateURL();
         bc.update(true);
     }
@@ -187,27 +187,27 @@ bc.updateFilters = function (data) {
     var reload = false;
     var update = false;
     if (data) {
-        if (data.filter
-            && data.selections
-            && Object.prototype.toString.call(data.selections) === '[object Array]'
-            && data.filter === bc.filter_context) {
-            bc.selected_filters = data.selections.slice();
-            bc.freeze = bc.selected_filters.length > 0;
+        if (data.filteringContext
+            && data.filteringGroups
+            && Object.prototype.toString.call(data.filteringGroups) === '[object Array]'
+            && data.filteringContext === bc.filter_context) {
+            bc.selected_filter_groups = data.filteringGroups.slice();
+            bc.freeze = bc.selected_filter_groups.length > 0;
             // TODO : update selected bars (UI)
             reload = true;
-        } else if (!data.selections
-            || Object.prototype.toString.call(data.selections) !== '[object Array]'
-            || data.selections.length === 0) {
-            if (bc.filters_meta.hasOwnProperty(data.filter)) {
-                delete bc.filters_meta[data.filter];
+        } else if (!data.filteringGroups
+            || Object.prototype.toString.call(data.filteringGroups) !== '[object Array]'
+            || data.filteringGroups.length === 0) {
+            if (bc.filters_meta.hasOwnProperty(data.filteringContext)) {
+                delete bc.filters_meta[data.filteringContext];
                 reload = true;
                 update = true;
             }
-        } else if (data.filter
-            && data.selections
-            && Object.prototype.toString.call(data.selections) === '[object Array]'
-            && data.selections.length > 0) {
-            bc.filters_meta[data.filter] = data;
+        } else if (data.filteringContext
+            && data.filteringGroups
+            && Object.prototype.toString.call(data.filteringGroups) === '[object Array]'
+            && data.filteringGroups.length > 0) {
+            bc.filters_meta[data.filteringContext] = data;
             reload = true;
             update = true;
         }

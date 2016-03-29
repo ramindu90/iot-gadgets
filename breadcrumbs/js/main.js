@@ -55,8 +55,8 @@ bc.loadFiltersFromURL = function () {
             && filter.lastIndexOf(bc.filter_prefix, 0) === 0) {
             var filter_context = filter.substring(bc.filter_prefix.length);
             bc.updateBreadcrumbs({
-                filter: filter_context,
-                selections: params[filter]
+                filteringContext: filter_context,
+                filteringGroups: params[filter]
             });
         }
     }
@@ -141,23 +141,23 @@ bc.addBreadcrumb = function (filterKey, selectedFilters) {
     }
 };
 
-bc.removeBreadcrumb = function (filterKey, filterSelection) {
-    var breadcrumbId = filterKey + '_' + filterSelection;
-    var currentFilters = bc.filters_meta[filterKey]['selections'];
+bc.removeBreadcrumb = function (filteringContext, filteringGroups) {
+    var breadcrumbId = filteringContext + '_' + filteringGroups;
+    var currentFilters = bc.filters_meta[filteringContext]['filteringGroups'];
     if (currentFilters) {
-        var fIndex = currentFilters.indexOf(filterSelection);
+        var fIndex = currentFilters.indexOf(filteringGroups);
         if (fIndex !== -1) {
             currentFilters.splice(fIndex, 1);
-            if (Object.prototype.toString.call(bc.breadcrumbs[filterKey]) === '[object Array]') {
-                var bIndex = bc.breadcrumbs[filterKey].indexOf(filterSelection);
+            if (Object.prototype.toString.call(bc.breadcrumbs[filteringContext]) === '[object Array]') {
+                var bIndex = bc.breadcrumbs[filteringContext].indexOf(filteringGroups);
                 if (bIndex !== -1) {
-                    bc.breadcrumbs[filterKey].splice(bIndex, 1);
+                    bc.breadcrumbs[filteringContext].splice(bIndex, 1);
                     bc.publish({
-                        "filter": filterKey,
-                        "selections": currentFilters
+                        "filteringContext": filteringContext,
+                        "filteringGroups": currentFilters
                     });
                     $("span#" + breadcrumbId).remove();
-                    bc.updateURL(filterKey, currentFilters);
+                    bc.updateURL(filteringContext, currentFilters);
                     bc.updateBreadcrumbs(null, true);
                 }
             }
@@ -168,31 +168,31 @@ bc.removeBreadcrumb = function (filterKey, filterSelection) {
 bc.updateBreadcrumbs = function (data, force_update) {
     var updated = false;
     if (data) {
-        if (!data.selections
-            || Object.prototype.toString.call(data.selections) !== '[object Array]'
-            || data.selections.length === 0) {
-            if (bc.filters_meta.hasOwnProperty(data.filter)) {
-                var cs = bc.filters_meta[data.filter]['selections'];
+        if (!data.filteringGroups
+            || Object.prototype.toString.call(data.filteringGroups) !== '[object Array]'
+            || data.filteringGroups.length === 0) {
+            if (bc.filters_meta.hasOwnProperty(data.filteringContext)) {
+                var cs = bc.filters_meta[data.filteringContext]['filteringGroups'];
                 for (var i = 0; i < cs.length; i++) {
-                    bc.removeBreadcrumb(data.filter, cs[i]);
+                    bc.removeBreadcrumb(data.filteringContext, cs[i]);
                 }
-                delete bc.filters_meta[data.filter];
+                delete bc.filters_meta[data.filteringContext];
                 updated = true;
             }
-        } else if (data.filter
-            && data.selections
-            && Object.prototype.toString.call(data.selections) === '[object Array]'
-            && data.selections.length > 0) {
-            if (!bc.filters_meta[data.filter] ||
-                bc.filters_meta[data.filter]['selections'].length < data['selections'].length) {
-                bc.filters_meta[data.filter] = data;
-                bc.addBreadcrumb(data.filter, data.selections);
+        } else if (data.filteringContext
+            && data.filteringGroups
+            && Object.prototype.toString.call(data.filteringGroups) === '[object Array]'
+            && data.filteringGroups.length > 0) {
+            if (!bc.filters_meta[data.filteringContext] ||
+                bc.filters_meta[data.filteringContext]['filteringGroups'].length < data['filteringGroups'].length) {
+                bc.filters_meta[data.filteringContext] = data;
+                bc.addBreadcrumb(data.filteringContext, data.filteringGroups);
             }
-            if (Object.prototype.toString.call(bc.breadcrumbs[data.filter]) === '[object Array]') {
-                for (var j = 0; j < bc.breadcrumbs[data.filter].length; j++) {
-                    var index = data.selections.indexOf(bc.breadcrumbs[data.filter][j]);
+            if (Object.prototype.toString.call(bc.breadcrumbs[data.filteringContext]) === '[object Array]') {
+                for (var j = 0; j < bc.breadcrumbs[data.filteringContext].length; j++) {
+                    var index = data.filteringGroups.indexOf(bc.breadcrumbs[data.filteringContext][j]);
                     if (index === -1) {
-                        bc.removeBreadcrumb(data.filter, bc.breadcrumbs[data.filter][j]);
+                        bc.removeBreadcrumb(data.filteringContext, bc.breadcrumbs[data.filteringContext][j]);
                     }
                 }
             }
@@ -212,8 +212,8 @@ bc.updateBreadcrumbs = function (data, force_update) {
 
 bc.subscribe(function (topic, data) {
     bc.updateBreadcrumbs({
-        filter: data.filter,
-        selections: data.selections.slice()
+        filteringContext: data.filteringContext,
+        filteringGroups: data.filteringGroups.slice()
     });
 });
 
