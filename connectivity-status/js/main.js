@@ -19,7 +19,7 @@ var bc = bc || {};
 bc.chart = null;
 bc.polling_task = null;
 bc.data = [];
-bc.filter_key = null;
+bc.filter_context = null;
 bc.filters_meta = {};
 bc.filters = [];
 bc.filter_prefix = "g_";
@@ -70,22 +70,22 @@ bc.initialize = function () {
 };
 
 bc.loadFiltersFromURL = function () {
-    bc.filter_key = $.ajax({
+    bc.filter_context = $.ajax({
         url: gadgetConfig.source,
         method: "POST",
         data: JSON.stringify({}),
         async: false
-    }).responseJSON.filteredBy;
+    }).responseJSON.context;
     var params = getURLParams();
     for (var filter in params) {
         if (params.hasOwnProperty(filter)
             && filter.lastIndexOf(bc.filter_prefix, 0) === 0) {
-            var filter_key = filter.substring(bc.filter_prefix.length);
-            if (bc.filter_key === filter_key) {
+            var filter_context = filter.substring(bc.filter_prefix.length);
+            if (bc.filter_context === filter_context) {
                 bc.selected_filters = params[filter];
             } else {
                 bc.updateFilters({
-                    filter: filter_key,
+                    filter: filter_context,
                     selections: params[filter]
                 });
             }
@@ -123,7 +123,7 @@ bc.fetch = function (cb) {
         contentType: 'application/json',
         data: JSON.stringify(bc.filters),
         success: function (response) {
-            bc.filter_key = response["filteredBy"];
+            bc.filter_context = response["context"];
             var data = response["data"];
             if (data && data.length > 0) {
                 for (var i = 0; i < data.length; i++) {
@@ -145,7 +145,7 @@ bc.fetch = function (cb) {
 };
 
 bc.updateURL = function () {
-    updateURLParam(bc.filter_prefix + bc.filter_key, bc.selected_filters);
+    updateURLParam(bc.filter_prefix + bc.filter_context, bc.selected_filters);
 };
 
 bc.subscribe = function (callback) {
@@ -170,7 +170,7 @@ bc.onclick = function (event, item) {
             bc.selected_filters.push(filter);
         }
         bc.publish({
-            "filter": bc.filter_key,
+            "filter": bc.filter_context,
             "selections": bc.selected_filters
         });
         bc.freeze = bc.selected_filters.length > 0;
@@ -186,7 +186,7 @@ bc.updateFilters = function (data) {
         if (data.filter
             && data.selections
             && Object.prototype.toString.call(data.selections) === '[object Array]'
-            && data.filter === bc.filter_key) {
+            && data.filter === bc.filter_context) {
             bc.selected_filters = data.selections.slice();
             bc.freeze = bc.selected_filters.length > 0;
             // TODO : update selected bars (UI)

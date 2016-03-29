@@ -20,7 +20,7 @@ var bc = bc || {};
 bc.table = null;
 bc.polling_task = null;
 bc.data = [];
-bc.filter_key = null;
+bc.filter_context = null;
 bc.filters_meta = {};
 bc.filters = [];
 bc.filter_prefix = "g_";
@@ -76,9 +76,9 @@ bc.loadFiltersFromURL = function () {
     for (var filter in params) {
         if (params.hasOwnProperty(filter)
             && filter.lastIndexOf(bc.filter_prefix, 0) === 0) {
-            var filter_key = filter.substring(bc.filter_prefix.length);
+            var filter_context = filter.substring(bc.filter_prefix.length);
             bc.updateFilters({
-                filter: filter_key,
+                filter: filter_context,
                 selections: params[filter]
             });
         }
@@ -113,7 +113,7 @@ bc.fetch = function (cb) {
         contentType: 'application/json',
         data: JSON.stringify(bc.filters),
         success: function (response) {
-            bc.filter_key = response["filteredBy"];
+            bc.filter_context = response["context"];
             var data = response["data"];
             if (data && data.length > 0) {
                 for (var i = 0; i < data.length; i++) {

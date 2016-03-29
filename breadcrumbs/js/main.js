@@ -53,9 +53,9 @@ bc.loadFiltersFromURL = function () {
     for (var filter in params) {
         if (params.hasOwnProperty(filter)
             && filter.lastIndexOf(bc.filter_prefix, 0) === 0) {
-            var filter_key = filter.substring(bc.filter_prefix.length);
+            var filter_context = filter.substring(bc.filter_prefix.length);
             bc.updateBreadcrumbs({
-                filter: filter_key,
+                filter: filter_context,
                 selections: params[filter]
             });
         }
