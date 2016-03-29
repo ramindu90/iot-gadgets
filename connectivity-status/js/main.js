@@ -67,7 +67,6 @@ bc.initialize = function () {
     ]);
     bc.loadFiltersFromURL();
     bc.startPolling();
-    bc.freeze = bc.selected_filter_groups.length > 0;
 };
 
 bc.loadFiltersFromURL = function () {
@@ -98,6 +97,7 @@ bc.loadFiltersFromURL = function () {
 bc.startPolling = function () {
     setTimeout(function () {
         bc.update();
+        bc.freeze = bc.selected_filter_groups.length > 0;
     }, 500);
     this.polling_task = setInterval(function () {
         bc.update();
