@@ -207,9 +207,9 @@ bc.updateBreadcrumbs = function (data, force_update) {
             }
         }
         if ($('#breadcrumbs').html()) {
-            $('#filterMsg').html("<b>Filtered by : </b>");
+            $('#filterMsg').html("Filtered by : ");
         } else {
-            $('#filterMsg').html("<b>No Filters</b>");
+            $('#filterMsg').html("Click on charts to filter devices.");
         }
         bc.updateDeviceCount(true);
     }
