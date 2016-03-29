@@ -206,6 +206,11 @@ bc.updateBreadcrumbs = function (data, force_update) {
                 bc.filters.push(bc.filters_meta[k]);
             }
         }
+        if ($('#breadcrumbs').html()) {
+            $('#filterMsg').html("<b>Filtered by : </b>");
+        } else {
+            $('#filterMsg').html("<b>No Filters</b>");
+        }
         bc.updateDeviceCount(true);
     }
 };
