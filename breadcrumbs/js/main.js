@@ -86,15 +86,20 @@ bc.fetch = function (cb) {
         contentType: 'application/json',
         data: JSON.stringify(bc.filters),
         success: function (response) {
-            var data = response["data"];
-            if (data) {
-                bc.data.filteredCount = data["filteredCount"] ? data["filteredCount"] : bc.data.filteredCount;
-                bc.data.totalCount = data["totalCount"] ? data["totalCount"] : bc.data.totalCount;
-                if (bc.force_fetch) {
-                    bc.updateDeviceCount();
-                } else {
-                    cb(bc.data);
+            if (Object.prototype.toString.call(response) === '[object Array]' && response.length === 1) {
+                var results = response[0].data;
+                for (var data = {}, i = 0; i < results.length; i++) data[results[i]["group"]] = results[i]["count"];
+                if (data) {
+                    bc.data.filteredCount = data["filteredCount"] ? data["filteredCount"] : bc.data.filteredCount;
+                    bc.data.totalCount = data["totalCount"] ? data["totalCount"] : bc.data.totalCount;
+                    if (bc.force_fetch) {
+                        bc.updateDeviceCount();
+                    } else {
+                        cb(bc.data);
+                    }
                 }
+            } else {
+                console.error("Invalid response structure found: " + JSON.stringify(response));
             }
         },
         complete: function (jqXHR, status) {
