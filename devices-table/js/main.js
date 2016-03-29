@@ -113,26 +113,30 @@ bc.fetch = function (cb) {
         contentType: 'application/json',
         data: JSON.stringify(bc.filters),
         success: function (response) {
-            bc.filter_context = response["context"];
-            var data = response["data"];
-            if (data && data.length > 0) {
-                for (var i = 0; i < data.length; i++) {
-                    bc.data.push(
-                        [
-                            Mustache.to_html(bc.cell_templates['deviceID'], {'deviceID': data[i]["id"]}),
-                            Mustache.to_html(bc.cell_templates['deviceName'], {'deviceName': data[i]["label"]}),
-                            Mustache.to_html(bc.cell_templates['status'], {'status': data[i]["status"]}),
-                            Mustache.to_html(bc.cell_templates['platform'], {'platform': data[i]["platform"]}),
-                            Mustache.to_html(bc.cell_templates['model'], {'model': data[i]["model"]}),
-                            Mustache.to_html(bc.cell_templates['actions'], {'actions': data[i]["actions"]})
-                        ]
-                    );
+            if (Object.prototype.toString.call(response) === '[object Array]' && response.length === 1) {
+                bc.filter_context = response[0]["context"];
+                var data = response[0]["data"];
+                if (data && data.length > 0) {
+                    for (var i = 0; i < data.length; i++) {
+                        bc.data.push(
+                            [
+                                Mustache.to_html(bc.cell_templates['deviceID'], {'deviceID': data[i]["id"]}),
+                                Mustache.to_html(bc.cell_templates['deviceName'], {'deviceName': data[i]["label"]}),
+                                Mustache.to_html(bc.cell_templates['status'], {'status': data[i]["status"]}),
+                                Mustache.to_html(bc.cell_templates['platform'], {'platform': data[i]["platform"]}),
+                                Mustache.to_html(bc.cell_templates['model'], {'model': data[i]["model"]}),
+                                Mustache.to_html(bc.cell_templates['actions'], {'actions': data[i]["actions"]})
+                            ]
+                        );
+                    }
+                    if (bc.force_fetch) {
+                        bc.update();
+                    } else {
+                        cb(bc.data);
+                    }
                 }
-                if (bc.force_fetch) {
-                    bc.update();
-                } else {
-                    cb(bc.data);
-                }
+            } else {
+                console.error("Invalid response structure found: " + JSON.stringify(response));
             }
         },
         complete: function (jqXHR, status) {
