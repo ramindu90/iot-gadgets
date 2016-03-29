@@ -41,7 +41,9 @@ bc.config = {
             color: "name",
             xTitle: "",
             yTitle: "",
-            mode: "group"
+            mode: "group",
+            colorScale: ["#e74c3c", "#e67e22", "#f1c40f", "#2ecc71"],
+            colorDomain: ["Critical", "High", "Medium", "Normal"]
         }
     ],
     width: $(window).width() * 0.95,

@@ -41,7 +41,9 @@ bc.config = {
             color: "name",
             xTitle: "",
             yTitle: "",
-            mode: "group"
+            mode: "group",
+            colorScale: ["#e74c3c", "#f39c12", "#f1c40f", "#d35400"],
+            colorDomain: ["Non Compliant", "No Passcode", "Non encrypted", "Unmonitored"]
         }
     ],
     width: $(window).width() * 0.95,

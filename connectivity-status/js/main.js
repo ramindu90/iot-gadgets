@@ -41,7 +41,9 @@ bc.config = {
             color: "name",
             xTitle: "",
             yTitle: "",
-            mode: "group"
+            mode: "group",
+            colorScale: ["#2ecc71", "#e74c3c", "#f39c12"],
+            colorDomain: ["Active", "Blocked", "Inactive"]
         }
     ],
     width: $(window).width() * 0.95,
