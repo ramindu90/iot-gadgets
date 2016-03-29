@@ -67,6 +67,7 @@ bc.initialize = function () {
     ]);
     bc.loadFiltersFromURL();
     bc.startPolling();
+    bc.freeze = bc.selected_filter_groups.length > 0;
 };
 
 bc.loadFiltersFromURL = function () {
@@ -91,7 +92,6 @@ bc.loadFiltersFromURL = function () {
             }
         }
     }
-    bc.freeze = bc.selected_filter_groups.length > 0;
     // TODO : update selected bars (UI)
 };
 
