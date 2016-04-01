@@ -48,9 +48,9 @@ bc.config = {
             mode: "stack"
         }
     ],
-    width: $(window).width() * 0.95,
-    height: 200,
-    padding: {"top": 10, "left": 30, "bottom": 40, "right": 10}
+    width: $(window).width() * 0.97,
+    height: 250,
+    padding: {"top": 10, "left": 50, "bottom": 20, "right": 0}
 };
 
 bc.initialize = function () {
