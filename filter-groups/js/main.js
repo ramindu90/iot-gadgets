@@ -196,7 +196,6 @@ bc.publish = function (data) {
 
 bc.onclick = function (event, item) {
     if (item != null) {
-        alert(item.datum.context);
         var filteringContext = item.datum.context;
         var filteringGroup = item.datum.group;
         var index = bc.selected_filter_groups[filteringContext].indexOf(filteringGroup);
