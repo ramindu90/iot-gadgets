@@ -20,6 +20,7 @@ var bc = bc || {};
 bc.chart = null;
 bc.polling_task = null;
 bc.data = [];
+bc.sum = 0;
 bc.filter_contexts = [];
 bc.filters_meta = {};
 bc.filters = [];
@@ -140,6 +141,7 @@ bc.fetch = function (cb) {
         success: function (response) {
             if (Object.prototype.toString.call(response) === '[object Array]') {
                 for (var i = 0; i < response.length; i++) {
+                    bc.sum = 0;
                     var context = response[i]["context"];
                     var data = response[i]["data"];
                     if (context && data) {
@@ -148,9 +150,11 @@ bc.fetch = function (cb) {
                             bc.selected_filter_groups[context] = [];
                         }
                         if (data.length > 0) {
-                            for (var j = 0; j < data.length; j++) {
+                            for (var j = 0; j < data.length; j++)
+                                bc.sum += data[j]["count"];
+                            for (j = 0; j < data.length; j++) {
                                 bc.data.push(
-                                    [context, data[j]["group"], data[j]["label"], data[j]["count"]]
+                                    [context, data[j]["group"], data[j]["label"], (data[j]["count"] / bc.sum) * 100]
                                 );
                             }
                         }
@@ -192,20 +196,22 @@ bc.publish = function (data) {
 
 bc.onclick = function (event, item) {
     if (item != null) {
-        // var filteringGroup = item.datum[bc.config.x];
-        // var index = bc.selected_filter_groups.indexOf(filteringGroup);
-        // if (index !== -1) {
-        //     bc.selected_filter_groups.splice(index, 1);
-        // } else {
-        //     bc.selected_filter_groups.push(filteringGroup);
-        // }
-        // bc.publish({
-        //     "filteringContext": bc.filter_contexts,
-        //     "filteringGroups": bc.selected_filter_groups
-        // });
-        // bc.freeze = bc.isFreeze();
-        // bc.updateURL();
-        // bc.update(true);
+        alert(item.datum.context);
+        var filteringContext = item.datum.context;
+        var filteringGroup = item.datum.group;
+        var index = bc.selected_filter_groups[filteringContext].indexOf(filteringGroup);
+        if (index !== -1) {
+            bc.selected_filter_groups[filteringContext].splice(index, 1);
+        } else {
+            bc.selected_filter_groups[filteringContext].push(filteringGroup);
+        }
+        bc.publish({
+            "filteringContext": filteringContext,
+            "filteringGroups": bc.selected_filter_groups[filteringContext]
+        });
+        bc.freeze = bc.isFreeze();
+        bc.updateURL();
+        bc.update(true);
     }
 };
 
