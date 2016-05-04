@@ -21,5 +21,9 @@ var gadgetConfig = {
     "polling_interval": 30000,
     "pub_sub_channel": "filter",
     "source": "https://0.0.0.0:8080/devices",
+    //"featureSource": "https://0.0.0.0:8080/devices",
+    //"defaultSource": "https://0.0.0.0:8080/devices",
+    "featureSource": "/portal/dashboard/analytics?type=feature-non-compliant-devices-with-details",
+    "defaultSource": "/portal/dashboard/analytics?type=filtered-devices-with-details",
     "domain": "carbon.super"
 };

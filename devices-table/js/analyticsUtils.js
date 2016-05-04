@@ -89,3 +89,16 @@ function getURLParams() {
     delete urlParams["filtered"];
     return urlParams;
 }
+
+function isFilteredDashboard() {
+    //iot-analytics-dashboard-drilled
+    var urlComponents = window.parent.location.pathname.split('/');
+    return urlComponents.indexOf('filter') != -1;
+
+}
+
+function getFilteringUrl() {
+    var url = window.parent.location.search.substring(1);
+    url = url.split("g_").join("");
+    return url;
+}

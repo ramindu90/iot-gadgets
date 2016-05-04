@@ -28,28 +28,34 @@ bc.selected_filter_groups = [];
 bc.force_fetch = false;
 bc.freeze = false;
 bc.div = "#table";
+bc.drilledDownFilter = "";
+bc.gadgetUrl = gadgetConfig.defaultSource;
+bc.filterUrl = "";
+bc.API_CHANGING_PARAMETER = "non-compliant-feature";
+
 bc.meta = {
-    "names": ["deviceID", "deviceName", "status", "platform", "model", "actions"],
-    "types": ["ordinal", "ordinal", "ordinal", "ordinal", "ordinal", "ordinal"]
+    "names": ["device-id", "connectivity-details", "platform", "ownership", "actions"],
+    "types": ["ordinal", "ordinal", "ordinal", "ordinal", "ordinal"]
 };
 bc.config = {
-    key: "deviceID",
+    key: "device-id",
     title:"deviceTable",
     charts: [{
         type: "table",
-        columns: ["deviceID", "deviceName", "status", "platform", "model", "actions"],
-        columnTitles: ["Id", "Device", "Status", "Platform", "Model", "Actions"]
+        columns: ["device-id", "connectivity-details", "platform", "ownership", "actions"],
+        columnTitles: ["Id", "connectivity-details", "Platform", "Ownership", "Actions"]
     }],
     width: $(window).width()* 0.95,
     height: $(window).width() * 0.65 > $(window).height() ? $(window).height() : $(window).width() * 0.65,
     padding: { "top": 18, "left": 30, "bottom": 22, "right": 70 }
 };
 bc.cell_templates = {
-    'deviceID' : '<input class="deviceID" type="checkbox" name="device" value="{{deviceID}}">',
-    'deviceName' : '<i class="fw fw-mobile"></i> {{deviceName}}',
-    'status' : '{{status}}',
+    //'device-id' : '<input class="device-id" type="checkbox" name="device" value="{{device-id}}">',
+    //'deviceName' : '<i class="fw fw-mobile"></i> {{deviceName}}',
+    'device-id' : '{{device-id}}',
+    'connectivity-details' : '{{connectivity-details}}',
     'platform' : '{{platform}}',
-    'model' : '{{model}}',
+    'ownership' : '{{ownership}}',
     'actions' : '<a href="#">{{actions}}</a>'
 };
 
@@ -77,11 +83,17 @@ bc.loadFiltersFromURL = function () {
         if (params.hasOwnProperty(filter)
             && filter.lastIndexOf(bc.filter_prefix, 0) === 0) {
             var filter_context = filter.substring(bc.filter_prefix.length);
+            //todo: make this a constant
+            if(filter_context == bc.API_CHANGING_PARAMETER){
+                bc.gadgetUrl = gadgetConfig.featureSource;
+            }
             bc.updateFilters({
                 filteringContext: filter_context,
                 filteringGroups: params[filter]
             });
+            bc.drilledDownFilter = filter_context;
         }
+        bc.filterUrl = getFilteringUrl();
     }
 };
 
@@ -97,6 +109,22 @@ bc.startPolling = function () {
 bc.update = function (force) {
     bc.force_fetch = !bc.force_fetch ? force || false : true;
     if (!bc.freeze) {
+        //todo: redrawing the data table because there are no clear and insert method
+        document.getElementById("table").innerHTML = "";
+        bc.data = [];
+        bc.table = new vizg(
+            [
+                {
+                    "metadata": bc.meta,
+                    "data": bc.data
+                }
+            ],
+            bc.config
+        );
+        bc.table.draw(bc.div);
+        setTimeout(function () {
+            $("#deviceTable").DataTable();
+        }, 1000);
         bc.fetch(function (data) {
             bc.table.insert(data);
         });
@@ -105,14 +133,20 @@ bc.update = function (force) {
 
 bc.fetch = function (cb) {
     bc.data.length = 0;
+    bc.data = [];
     bc.force_fetch = false;
+    var getUrl = bc.gadgetUrl;
+
+    if(bc.filterUrl != ""){
+        getUrl = getUrl + "&" + bc.filterUrl;
+    }
+    getUrl = getUrl + "&pagination-enabled=false";
+    //console.log(getUrl);
     $.ajax({
-        url: gadgetConfig.source,
-        method: "POST",
-        dataType: 'json',
-        contentType: 'application/json',
-        data: JSON.stringify(bc.filters),
+        url: getUrl,
+        method: "GET",
         success: function (response) {
+            response = JSON.parse(response["message"]);
             if (Object.prototype.toString.call(response) === '[object Array]' && response.length === 1) {
                 bc.filter_context = response[0]["context"];
                 var data = response[0]["data"];
@@ -120,12 +154,11 @@ bc.fetch = function (cb) {
                     for (var i = 0; i < data.length; i++) {
                         bc.data.push(
                             [
-                                Mustache.to_html(bc.cell_templates['deviceID'], {'deviceID': data[i]["id"]}),
-                                Mustache.to_html(bc.cell_templates['deviceName'], {'deviceName': data[i]["label"]}),
-                                Mustache.to_html(bc.cell_templates['status'], {'status': data[i]["status"]}),
+                                Mustache.to_html(bc.cell_templates['device-id'], {'device-id': data[i]["device-id"]}),
+                                Mustache.to_html(bc.cell_templates['connectivity-details'], {'connectivity-details': data[i]["connectivity-details"]}),
                                 Mustache.to_html(bc.cell_templates['platform'], {'platform': data[i]["platform"]}),
-                                Mustache.to_html(bc.cell_templates['model'], {'model': data[i]["model"]}),
-                                Mustache.to_html(bc.cell_templates['actions'], {'actions': data[i]["actions"]})
+                                Mustache.to_html(bc.cell_templates['ownership'], {'ownership': data[i]["ownership"]}),
+                                Mustache.to_html(bc.cell_templates['actions'], {'actions': "Actions"})
                             ]
                         );
                     }
@@ -146,6 +179,7 @@ bc.fetch = function (cb) {
 };
 
 bc.subscribe = function (callback) {
+    console.log("subscribed to filter-groups2: ");
     gadgets.HubSettings.onConnect = function () {
         gadgets.Hub.subscribe("subscriber", function (topic, data, subscriber) {
             callback(topic, data)
@@ -160,6 +194,8 @@ bc.onclick = function (event, item) {
 
 bc.updateFilters = function (data) {
     var updated = false;
+    bc.filterUrl = getFilteringUrl();
+    //console.log("updating device table filters");
     if (typeof data != "undefined" && data != null) {
         if (typeof data.filteringGroups === "undefined"
             || data.filteringGroups === null
@@ -193,6 +229,7 @@ bc.updateFilters = function (data) {
 };
 
 bc.subscribe(function (topic, data) {
+    //console.log("subscribed to filter-groups: " + topic);
     bc.updateFilters(data);
 });
 
