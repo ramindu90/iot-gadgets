@@ -118,27 +118,22 @@ bc.fetch = function (cb) {
                 bc.filter_context = response[0]["context"];
                 var data = response[0]["data"];
                 if (data && data.length > 0) {
-
-                    var non_complaint = document.getElementById('non-complaint');
-                    non_complaint.innerHTML = bc.getDataFromResponse(response[0].data[0]);
-                    var non_complaint1 = document.getElementById('non-complaint1');
-                    if (bc.getDataFromResponse(response[0].data[0]) == 0) {
-                        bc.buttonNonCompliaintOnCLick = non_complaint1.onclick;
-                        non_complaint1.onclick = null
-                    } else {
-                        //todo: enable onclick again
-                        //non_complaint1.onclick = bc.buttonNonCompliaintOnCLick;
-                    }
-
-                    var unmonitored = document.getElementById('unmonitored');
-                    unmonitored.innerHTML = bc.getDataFromResponse(response[0].data[1]);
-                    var unmonitored1 = document.getElementById('unmonitored1');
-                    if (bc.getDataFromResponse(response[0].data[1]) == 0) {
-                        bc.buttonUnmonitoredOnCLick = unmonitored1.onclick;
-                        unmonitored1.onclick = null
-                    } else {
-                        //todo: enable onclick again
-                        //unmonitored1.onclick = bc.buttonUnmonitoredOnCLick;
+                    for (var i = 0; i < data.length; i++) {
+                        var iDiv;
+                        if(null == document.getElementById(data[i].group)){
+                            iDiv = document.createElement("div");
+                        } else {
+                            iDiv = document.getElementById(data[i].group);
+                        }
+                        iDiv.id = data[i].group;
+                        iDiv.className = data[i].label;
+                        iDiv.innerHTML= data[i].label + ": " + data[i].count;
+                        if(data[i].count == 0){
+                            iDiv.removeAttribute("onclick");
+                        } else {
+                            iDiv.setAttribute("onclick", "bc.onclick2('"+data[i].group+"')");
+                        }
+                        document.getElementById('component').appendChild(iDiv);
                     }
                     if (bc.force_fetch) {
                         bc.update();

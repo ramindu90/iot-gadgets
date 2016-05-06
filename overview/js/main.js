@@ -114,37 +114,23 @@ bc.fetch = function (cb) {
                 bc.filter_context = response[0]["context"];
                 var data = response[0]["data"];
                 if (data && data.length > 0) {
-                    var deviceCount = document.getElementById('deviceCount');
-                    deviceCount.innerHTML = 'Count: ' + response[0].data[0].count;
-                    if (response[0].data[0].count == 0) {
-                        deviceCount.onclick = null
-                    } else {
-                        //todo: enable onclick again
+                    for (var i = 0; i < data.length; i++) {
+                        var iDiv;
+                        if(null == document.getElementById(data[i].group)){
+                            iDiv = document.createElement("div");
+                        } else {
+                            iDiv = document.getElementById(data[i].group);
+                        }
+                        iDiv.id = data[i].group;
+                        iDiv.className = data[i].label;
+                        iDiv.innerHTML= data[i].label + ": " + data[i].count;
+                        if(data[i].count == 0){
+                            iDiv.removeAttribute("onclick");
+                        } else {
+                            iDiv.setAttribute("onclick", "bc.onclick2('"+data[i].group+"')");
+                        }
+                        document.getElementById('component').appendChild(iDiv);
                     }
-
-                    var activeDevices = document.getElementById('activeDevices');
-                    activeDevices.innerHTML = 'Active: ' + response[0].data[1].count;
-                    if (response[0].data[1].count == 0) {
-                        activeDevices.onclick = null
-                    } else {
-                        //todo: enable onclick again
-                    }
-                    var inactiveDevices = document.getElementById('inactiveDevices');
-                    inactiveDevices.innerHTML = 'Inactive: ' + response[0].data[2].count;
-                    if (response[0].data[2].count == 0) {
-                        inactiveDevices.onclick = null
-                    } else {
-                        //todo: enable onclick again
-                    }
-
-                    var removedDevices = document.getElementById('removedDevices');
-                    removedDevices.innerHTML = 'Removed: ' + response[0].data[3].count;
-                    if (response[0].data[3].count == 0) {
-                        removedDevices.onclick = null
-                    } else {
-                        //todo: enable onclick again
-                    }
-
                     if (bc.force_fetch) {
                         bc.update();
                     } else {
